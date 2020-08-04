@@ -84,30 +84,143 @@ const (
 
 // XPath for easy extractor data
 type XPath struct {
-	result     []types.XPathResult
+	results    []types.XPathResult
 	errorFlags ErrorFlags
 }
 
 func NewXPath(result []types.XPathResult) *XPath {
-	xp := &XPath{result: result, errorFlags: ERROR_SKIP}
+	xp := &XPath{results: result, errorFlags: ERROR_SKIP}
 	return xp
 }
 
 // GetXPathResults Get Current XPath Results
 func (xp *XPath) GetXPathResults() []types.XPathResult {
-	return xp.result
+	return xp.results
 }
 
-// ForEachString Each String
+// GetAttributes Get the Attribute of the Current XPath Results
+func (xp *XPath) GetAttributes(key string) []types.Attribute {
+	if len(xp.results) == 0 {
+		return nil
+	}
+
+	var attrs []types.Attribute
+	for _, xpresult := range xp.results {
+		iter := xpresult.NodeIter()
+		for iter.Next() {
+			ele := iter.Node().(types.Element)
+			if ele != nil {
+				if attr, err := ele.GetAttribute(key); err == nil {
+					attrs = append(attrs, attr)
+				}
+			}
+		}
+	}
+	return attrs
+}
+
+// GetTexts Get the Text of the Current XPath Results
+func (xp *XPath) GetTexts() []string {
+	if len(xp.results) == 0 {
+		return nil
+	}
+
+	var txts []string
+	for _, xpresult := range xp.results {
+		iter := xpresult.NodeIter()
+		for iter.Next() {
+			ele := iter.Node().(types.Element)
+			if ele != nil {
+
+				txts = append(txts, ele.TextContent())
+
+			}
+		}
+	}
+	return txts
+}
+
+// GetNodeValues Get the NodeValue of the Current XPath Results
+func (xp *XPath) GetNodeValues() []string {
+	if len(xp.results) == 0 {
+		return nil
+	}
+
+	var nvalues []string
+	for _, xpresult := range xp.results {
+		iter := xpresult.NodeIter()
+		for iter.Next() {
+			ele := iter.Node().(types.Element)
+			if ele != nil {
+				nvalues = append(nvalues, ele.NodeValue())
+			}
+		}
+	}
+
+	return nvalues
+}
+
+// GetNodeNames Get the NodeName of the Current XPath Results
+func (xp *XPath) GetNodeNames() []string {
+	if len(xp.results) == 0 {
+		return nil
+	}
+
+	var nvalues []string
+	for _, xpresult := range xp.results {
+		iter := xpresult.NodeIter()
+		for iter.Next() {
+			ele := iter.Node().(types.Element)
+			if ele != nil {
+				nvalues = append(nvalues, ele.NodeName())
+			}
+		}
+	}
+
+	return nvalues
+}
+
+// GetNodeStrings Get the String of the Current XPath Results
+func (xp *XPath) GetNodeStrings() []string {
+	if len(xp.results) == 0 {
+		return nil
+	}
+
+	var nvalues []string
+	for _, xpresult := range xp.results {
+		iter := xpresult.NodeIter()
+		for iter.Next() {
+			ele := iter.Node().(types.Element)
+			if ele != nil {
+				nvalues = append(nvalues, ele.String())
+			}
+		}
+	}
+
+	return nvalues
+}
+
+// GetTypes Get the Type of the Current XPath Results
+func (xp *XPath) GetTypes() []clib.XMLNodeType {
+	if len(xp.results) == 0 {
+		return nil
+	}
+
+	var txts []clib.XMLNodeType
+	for _, xpresult := range xp.results {
+		iter := xpresult.NodeIter()
+		for iter.Next() {
+			txts = append(txts, iter.Node().NodeType())
+		}
+	}
+	return txts
+}
+
+// ForEachString after executing xpath, get the String of all result
 func (xp *XPath) ForEachString(exp string) (sstr []string, errorlist []error) {
 
-	inames, errlist := xp.ForEachEx(exp, func(result types.XPathResult) []interface{} {
-		var ir []interface{}
-		for iter := result.NodeIter(); iter.Next(); {
-
-			ir = append(ir, iter.Node().String())
-		}
-		return ir
+	inames, errlist := xp.ForEachEx(exp, func(node types.Node) interface{} {
+		return node.String()
 	})
 
 	for _, i := range inames {
@@ -117,15 +230,11 @@ func (xp *XPath) ForEachString(exp string) (sstr []string, errorlist []error) {
 	return sstr, errlist
 }
 
-// ForEachText all result get TextContent
+// ForEachText after executing xpath, get the TextContent of all result
 func (xp *XPath) ForEachText(exp string) (texts []string, errorlist []error) {
 
-	inames, errlist := xp.ForEachEx(exp, func(result types.XPathResult) []interface{} {
-		var ir []interface{}
-		for iter := result.NodeIter(); iter.Next(); {
-			ir = append(ir, iter.Node().TextContent())
-		}
-		return ir
+	inames, errlist := xp.ForEachEx(exp, func(node types.Node) interface{} {
+		return node.TextContent()
 	})
 
 	for _, i := range inames {
@@ -135,15 +244,11 @@ func (xp *XPath) ForEachText(exp string) (texts []string, errorlist []error) {
 	return texts, errlist
 }
 
-// ForEachType all result get XMLNodeType
+// ForEachType after executing xpath, get the XMLNodeType of all result
 func (xp *XPath) ForEachType(exp string) (typelist []clib.XMLNodeType, errorlist []error) {
 
-	inames, errlist := xp.ForEachEx(exp, func(result types.XPathResult) []interface{} {
-		var ir []interface{}
-		for iter := result.NodeIter(); iter.Next(); {
-			ir = append(ir, iter.Node().NodeType())
-		}
-		return ir
+	inames, errlist := xp.ForEachEx(exp, func(node types.Node) interface{} {
+		return node.NodeType()
 	})
 
 	for _, i := range inames {
@@ -153,15 +258,11 @@ func (xp *XPath) ForEachType(exp string) (typelist []clib.XMLNodeType, errorlist
 	return typelist, errlist
 }
 
-// ForEachValue all results get NodeValue
+// ForEachValue after executing xpath, get the NodeValue of all result
 func (xp *XPath) ForEachValue(exp string) (values []string, errorlist []error) {
 
-	inames, errlist := xp.ForEachEx(exp, func(result types.XPathResult) []interface{} {
-		var ir []interface{}
-		for iter := result.NodeIter(); iter.Next(); {
-			ir = append(ir, iter.Node().NodeValue())
-		}
-		return ir
+	inames, errlist := xp.ForEachEx(exp, func(node types.Node) interface{} {
+		return node.NodeValue()
 	})
 
 	for _, i := range inames {
@@ -171,97 +272,89 @@ func (xp *XPath) ForEachValue(exp string) (values []string, errorlist []error) {
 	return values, errlist
 }
 
-// ForEachAttr all results get NodeAttribute
+// ForEachAttr after executing xpath, get the Attributes of all result
 func (xp *XPath) ForEachAttr(exp string) (attributes []types.Attribute, errorlist []error) {
 
-	inames, errlist := xp.ForEachEx(exp, func(result types.XPathResult) []interface{} {
-		var ir []interface{}
-		for iter := result.NodeIter(); iter.Next(); {
-			ele := iter.Node().(types.Element)
-
-			attribute, err := ele.Attributes()
-			if err != nil {
-				log.Println(err)
-			}
-			for _, attr := range attribute {
-				ir = append(ir, attr)
-			}
-
+	inames, errlist := xp.ForEachEx(exp, func(node types.Node) interface{} {
+		ele := node.(types.Element)
+		attrs, err := ele.Attributes()
+		if err != nil {
+			log.Println(err)
+		} else {
+			return attrs
 		}
-
-		return ir
+		return nil
 	})
 
 	for _, i := range inames {
-		attributes = append(attributes, i.(types.Attribute))
+		for _, attr := range i.([]types.Attribute) {
+			attributes = append(attributes, attr)
+		}
 	}
 
 	return attributes, errlist
 }
 
-// ForEachAttrKeys all results get NodeAttribute Key
-func (xp *XPath) ForEachAttrKeys(exp string) (keyslist [][]string, errorlist []error) {
+// ForEachAttrKeys after executing xpath, get the Attribute Key of all result
+func (xp *XPath) ForEachAttrKeys(exp string) (keyslist []string, errorlist []error) {
 
-	inames, errlist := xp.ForEachEx(exp, func(result types.XPathResult) []interface{} {
-		var ir []interface{}
-		for iter := result.NodeIter(); iter.Next(); {
-			ele := iter.Node().(types.Element)
-			attributes, err := ele.Attributes()
+	inames, errlist := xp.ForEachEx(exp, func(node types.Node) interface{} {
+		var ir []string
 
-			var keys []string
+		ele := node.(types.Element)
+		attributes, err := ele.Attributes()
+		if err != nil {
+			log.Println(err)
+		} else {
 			for _, attr := range attributes {
-				if err != nil {
-					log.Println(err)
-				}
-				keys = append(keys, attr.NodeName())
+				ir = append(ir, attr.NodeName())
 			}
-			ir = append(ir, keys)
 		}
 		return ir
 	})
 
 	for _, i := range inames {
-		keyslist = append(keyslist, i.([]string))
+		for _, s := range i.([]string) {
+			keyslist = append(keyslist, s)
+		}
 	}
 
 	return keyslist, errlist
 }
 
-// ForEachAttrValue all results get NodeAttribute
+// ForEachAttrValue after executing xpath, get the Attribute Value of all result
 func (xp *XPath) ForEachAttrValue(exp string, attributes ...string) (values []string, errorlist []error) {
 
-	inames, errlist := xp.ForEachEx(exp, func(result types.XPathResult) []interface{} {
-		var ir []interface{}
-		for iter := result.NodeIter(); iter.Next(); {
-			ele := iter.Node().(types.Element)
-			for _, attr := range attributes {
-				attribute, err := ele.GetAttribute(attr)
-				if err != nil {
-					log.Println(err)
-				}
+	inames, errlist := xp.ForEachEx(exp, func(node types.Node) interface{} {
+		var ir []string
+
+		ele := node.(types.Element)
+		for _, attr := range attributes {
+			attribute, err := ele.GetAttribute(attr)
+			if err != nil {
+				log.Println(err)
+			} else {
 				ir = append(ir, attribute.Value())
 			}
 		}
+
 		return ir
 	})
 
 	for _, i := range inames {
-		values = append(values, i.(string))
+		for _, s := range i.([]string) {
+			values = append(values, s)
+		}
 	}
 
 	return values, errlist
 }
 
-// ForEachName all result get NodeName
+// ForEachName after executing xpath, get the NodeName of all result
 func (xp *XPath) ForEachName(exp string) (names []string, errorlist []error) {
 
-	inames, errlist := xp.ForEachEx(exp, func(result types.XPathResult) []interface{} {
-		var ir []interface{}
-		for iter := result.NodeIter(); iter.Next(); {
-
-			ir = append(ir, iter.Node().NodeName())
-		}
-		return ir
+	inames, errlist := xp.ForEachEx(exp, func(node types.Node) interface{} {
+		return node.NodeName()
 	})
 
 	for _, i := range inames {
@@ -271,19 +364,24 @@ func (xp *XPath) ForEachName(exp string) (names []string, errorlist []error) {
 	return names, errlist
 }
 
-// ForEachEx foreach with do funciton
-func (xp *XPath) ForEachEx(exp string, do func(types.XPathResult) []interface{}) (values []interface{}, errorlist []error) {
-	if len(xp.result) == 0 {
+// ForEachEx foreach after executing xpath do funciton. note: duplicate
+func (xp *XPath) ForEachEx(exp string, do func(types.Node) interface{}) (values []interface{}, errorlist []error) {
+	if len(xp.results) == 0 {
 		return
 	}
 
-	for _, xpresult := range xp.result {
+	var dict map[uintptr]types.Node = make(map[uintptr]types.Node)
+	for _, xpresult := range xp.results {
 
 		iter := xpresult.NodeIter()
 		for iter.Next() {
 			node := iter.Node()
 			result, err := node.Find(exp)
-			iresult := do(result)
+			var inodes []types.Node
+			for iter := result.NodeIter(); iter.Next(); {
+				inodes = append(inodes, iter.Node())
+			}
+
 			if err != nil {
 				if xp.errorFlags == ERROR_SKIP {
 					errorlist = append(errorlist, err)
@@ -291,22 +389,32 @@ func (xp *XPath) ForEachEx(exp string, do func(types.XPathResult) []interface{})
 					break
 				}
 			}
-			values = append(values, iresult...)
+
+			for _, n := range inodes {
+				dict[n.Pointer()] = n
+			}
+
+		}
+	}
+
+	for _, in := range dict {
+		if want := do(in); want != nil {
+			values = append(values, want)
 		}
 	}
 
 	return
 }
 
-// ForEach new XPath( every result xpath get results )
+// ForEach new XPath( every result xpath get results ). note: not duplicate
 func (xp *XPath) ForEach(exp string) (newxpath *XPath, errorlist []error) {
-	if len(xp.result) == 0 {
+	if len(xp.results) == 0 {
 		return
 	}
 
 	var results []types.XPathResult
 
-	for _, xpresult := range xp.result {
+	for _, xpresult := range xp.results {
 
 		iter := xpresult.NodeIter()
 		for iter.Next() {
