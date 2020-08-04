@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"log"
+	"reflect"
 	"regexp"
 
 	"github.com/474420502/libxml2"
@@ -214,6 +215,23 @@ func (xp *XPath) GetTypes() []clib.XMLNodeType {
 		}
 	}
 	return txts
+}
+
+// ForEachString after executing xpath, get the String of all result
+func (xp *XPath) ForEachTag(obj interface{}) []error {
+	otype := reflect.TypeOf(obj).Elem()
+	ovalue := reflect.ValueOf(obj).Elem()
+
+	for i := 0; i < o.NumField(); i++ {
+		f := o.Field(i)
+		if exp, ok := f.Tag.Lookup("exp"); ok {
+			if method, ok := f.Tag.Lookup("method"); ok {
+
+			}
+		}
+	}
+
+	return nil
 }
 
 // ForEachString after executing xpath, get the String of all result

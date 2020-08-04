@@ -3,6 +3,7 @@ package extractor
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -152,4 +153,34 @@ func TestHtml(t *testing.T) {
 	// role
 
 	// t.Error(xp.ForEachText(".//dt"))
+}
+
+// 测试的object
+type toject struct {
+	dt string `exp:"//dt" method:"Element"`
+}
+
+func TestTag(t *testing.T) {
+	obj := &toject{}
+	objvalue := reflect.ValueOf(obj).Elem()
+	objtype := reflect.TypeOf(obj).Elem()
+
+	for i := 0; i < objtype.NumField(); i++ {
+		f := objtype.Field(i)
+		v := objvalue.Field(i)
+
+		if exp, ok := f.Tag.Lookup("exp"); ok {
+			if method, ok := f.Tag.Lookup("method"); ok {
+				t.Error(exp, method)
+			}
+			if !v.CanSet() {
+				t.Error(f.Name, " the field is not can set. must use uppercase")
+			} else {
+				objvalue.Field(i).Set(reflect.ValueOf(exp))
+			}
+
+		}
+	}
+
+	t.Error(obj)
 }
