@@ -3,7 +3,6 @@ package extractor
 import (
 	"fmt"
 	"os"
-	"reflect"
 	"testing"
 )
 
@@ -157,30 +156,37 @@ func TestHtml(t *testing.T) {
 
 // 测试的object
 type toject struct {
-	dt string `exp:"//dt" method:"Element"`
+	DT string `exp:".//li" method:"NodeName"`
 }
 
 func TestTag(t *testing.T) {
-	obj := &toject{}
-	objvalue := reflect.ValueOf(obj).Elem()
-	objtype := reflect.TypeOf(obj).Elem()
-
-	for i := 0; i < objtype.NumField(); i++ {
-		f := objtype.Field(i)
-		v := objvalue.Field(i)
-
-		if exp, ok := f.Tag.Lookup("exp"); ok {
-			if method, ok := f.Tag.Lookup("method"); ok {
-				t.Error(exp, method)
-			}
-			if !v.CanSet() {
-				t.Error(f.Name, " the field is not can set. must use uppercase")
-			} else {
-				objvalue.Field(i).Set(reflect.ValueOf(exp))
-			}
-
-		}
+	// obj := &toject{}
+	f, err := os.Open("./testfile/test1.html")
+	if err != nil {
+		t.Error(err)
 	}
+	etor := ExtractXmlReader(f)
+	xp, err := etor.XPaths("//*[contains(@class, 'c-header__modal__content__login')]")
+	xp.ForEachTag(toject{})
+	// objvalue := reflect.ValueOf(obj).Elem()
+	// objtype := reflect.TypeOf(obj).Elem()
 
-	t.Error(obj)
+	// for i := 0; i < objtype.NumField(); i++ {
+	// 	f := objtype.Field(i)
+	// 	v := objvalue.Field(i)
+
+	// 	if exp, ok := f.Tag.Lookup("exp"); ok {
+	// 		if method, ok := f.Tag.Lookup("method"); ok {
+	// 			t.Error(exp, method)
+	// 		}
+	// 		if !v.CanSet() {
+	// 			t.Error(f.Name, " the field is not can set. must use uppercase")
+	// 		} else {
+	// 			objvalue.Field(i).Set(reflect.ValueOf(exp))
+	// 		}
+
+	// 	}
+	// }
+
+	// t.Error(obj)
 }

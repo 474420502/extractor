@@ -6,6 +6,7 @@ import (
 	"log"
 	"reflect"
 	"regexp"
+	"strings"
 
 	"github.com/474420502/libxml2"
 	"github.com/474420502/libxml2/clib"
@@ -218,15 +219,37 @@ func (xp *XPath) GetTypes() []clib.XMLNodeType {
 }
 
 // ForEachString after executing xpath, get the String of all result
-func (xp *XPath) ForEachTag(obj interface{}) []error {
-	otype := reflect.TypeOf(obj).Elem()
-	ovalue := reflect.ValueOf(obj).Elem()
+func (xp *XPath) ForEachTag(obj interface{}) []interface{} {
+	otype := reflect.TypeOf(obj)
 
-	for i := 0; i < o.NumField(); i++ {
-		f := o.Field(i)
-		if exp, ok := f.Tag.Lookup("exp"); ok {
-			if method, ok := f.Tag.Lookup("method"); ok {
+	for _, xpresult := range xp.results {
 
+		iter := xpresult.NodeIter()
+		for iter.Next() {
+			node := iter.Node()
+			nobj := reflect.New(otype)
+			for i := 0; i < otype.NumField(); i++ {
+				f := otype.Field(i)
+				if exp, ok := f.Tag.Lookup("exp"); ok {
+					result, err := node.Find(exp)
+					if err == nil {
+						if smethod, ok := f.Tag.Lookup("method"); ok {
+							method := strings.Split(smethod, ",")
+							log.Println(result.String())
+							iter := result.NodeIter()
+							if iter.Next() {
+								mname := reflect.ValueOf(iter.Node()).Elem().MethodByName(method[0])
+								var args []reflect.Value = nil
+								for _, arg := range method[1:] {
+									args = append(args, reflect.ValueOf(arg))
+								}
+								resultAndError := mname.Call(args)
+								nobj.Field(i).Set(resultAndError[0])
+							}
+
+						}
+					}
+				}
 			}
 		}
 	}
