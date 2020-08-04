@@ -1,4 +1,4 @@
-module extractor
+module github.com/474420502/extractor
 
 go 1.14
 

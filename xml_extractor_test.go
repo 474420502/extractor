@@ -6,6 +6,20 @@ import (
 	"testing"
 )
 
+func TestRegexp(t *testing.T) {
+	f, err := os.Open("./testfile/test1.html")
+	if err != nil {
+		t.Error(err)
+	}
+	etor := ExtractXmlReader(f)
+	for _, matches := range etor.RegexpString(`use xlink:href[^>]+width=\"(\d+)\"[^>]+height=\"(\d+)\"`) {
+		if len(matches) != 3 {
+			t.Error("may error match")
+		}
+	}
+
+}
+
 func TestXPathMethod(t *testing.T) {
 	f, err := os.Open("./testfile/test1.html")
 	if err != nil {
