@@ -385,7 +385,7 @@ func (xp *XPath) ForEachTag(obj interface{}) []interface{} {
 
 			if isCreateObj {
 				// var nobj = reflect.New(otype)
-				results = append(results, nobj.Interface())
+				results = append(results, nobj.Addr().Interface())
 			}
 		}
 	}
