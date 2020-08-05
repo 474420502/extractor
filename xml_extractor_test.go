@@ -156,7 +156,8 @@ func TestHtml(t *testing.T) {
 
 // 测试的object
 type toject struct {
-	DT string `exp:".//li" method:"NodeName"`
+	Li  string   `exp:".//li" method:"String"`
+	Use []string `exp:".//use" method:"GetAttribute,width NodeValue"`
 }
 
 func TestTag(t *testing.T) {
@@ -165,9 +166,17 @@ func TestTag(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+
 	etor := ExtractXmlReader(f)
-	xp, err := etor.XPaths("//*[contains(@class, 'c-header__modal__content__login')]")
-	xp.ForEachTag(toject{})
+	xp, err := etor.XPaths("//body")
+	results := xp.ForEachTag(toject{})
+
+	for _, r := range results {
+		if len(r.(toject).Use) != 46 {
+			t.Error("len != 46")
+		}
+	}
+
 	// objvalue := reflect.ValueOf(obj).Elem()
 	// objtype := reflect.TypeOf(obj).Elem()
 

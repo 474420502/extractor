@@ -218,43 +218,174 @@ func (xp *XPath) GetTypes() []clib.XMLNodeType {
 	return txts
 }
 
-// ForEachString after executing xpath, get the String of all result
+type methodtag struct {
+	Method string
+	Args   []reflect.Value
+}
+
+type fieldtag struct {
+	Type  reflect.Type
+	Kind  reflect.Kind
+	Index int
+	Exp   string
+	// Method string
+	// Args   []reflect.Value
+	Methods []methodtag
+}
+
+var methodDict map[string]string
+
+type nodeMethod string
+
+const (
+	// TextContent Node.TextContent()
+	TextContent nodeMethod = "TextContent"
+	// GetAttribute Node.GetAttribute()
+	GetAttribute nodeMethod = "GetAttribute"
+	// NodeName Node.NodeName()
+	NodeName nodeMethod = "NodeName"
+	// NodeValue Node.NodeValue()
+	NodeValue nodeMethod = "NodeValue"
+	// ParentNode Node.NodeValue()
+	ParentNode nodeMethod = "ParentNode"
+)
+
+func init() {
+	methodDict = make(map[string]string)
+	methodDict["Text"] = string(TextContent)
+	methodDict["Attribute"] = string(GetAttribute)
+	methodDict["Name"] = string(NodeName)
+	methodDict["Parent"] = string(ParentNode)
+	methodDict["Value"] = string(NodeValue)
+}
+
+// ForEachTag after executing xpath, get the String of all result
 func (xp *XPath) ForEachTag(obj interface{}) []interface{} {
 	otype := reflect.TypeOf(obj)
+	var results []interface{}
+	var fieldtags []*fieldtag
+	for i := 0; i < otype.NumField(); i++ {
 
+		f := otype.Field(i)
+		if exp, ok := f.Tag.Lookup("exp"); ok {
+			ft := &fieldtag{}
+			ft.Index = i
+			ft.Exp = exp
+			ft.Kind = f.Type.Kind()
+			ft.Type = otype
+			if smethod, ok := f.Tag.Lookup("method"); ok {
+				for _, method := range strings.Split(smethod, " ") {
+					methodAndArgs := strings.Split(method, ",")
+					mt := methodtag{}
+					mt.Method = methodAndArgs[0]
+
+					// ft.Method = method[0]
+					var args []reflect.Value = nil
+					for _, arg := range methodAndArgs[1:] {
+						args = append(args, reflect.ValueOf(arg))
+					}
+					mt.Args = args
+					ft.Methods = append(ft.Methods, mt)
+				}
+
+			} else {
+				mt := methodtag{}
+				mt.Method = string(NodeName)
+				mt.Args = nil
+				ft.Methods = append(ft.Methods, mt)
+			}
+
+			fieldtags = append(fieldtags, ft)
+		}
+
+	}
+
+	// var dict map[uintptr]types.Node = make(map[uintptr]types.Node)
 	for _, xpresult := range xp.results {
 
 		iter := xpresult.NodeIter()
 		for iter.Next() {
 			node := iter.Node()
-			nobj := reflect.New(otype)
-			for i := 0; i < otype.NumField(); i++ {
-				f := otype.Field(i)
-				if exp, ok := f.Tag.Lookup("exp"); ok {
-					result, err := node.Find(exp)
-					if err == nil {
-						if smethod, ok := f.Tag.Lookup("method"); ok {
-							method := strings.Split(smethod, ",")
-							log.Println(result.String())
-							iter := result.NodeIter()
-							if iter.Next() {
-								mname := reflect.ValueOf(iter.Node()).Elem().MethodByName(method[0])
-								var args []reflect.Value = nil
-								for _, arg := range method[1:] {
-									args = append(args, reflect.ValueOf(arg))
+			var nobj reflect.Value
+			var isCreateObj bool = false
+			for _, ft := range fieldtags {
+				result, err := node.Find(ft.Exp)
+				// var inodes []types.Node
+				if err == nil {
+
+					iter := result.NodeIter()
+					if ft.Kind == reflect.Slice {
+
+						var callresults [][]reflect.Value
+						for iter.Next() {
+							becall := reflect.ValueOf(iter.Node())
+							var isVaild = true
+							var callresult []reflect.Value
+							for _, method := range ft.Methods {
+								if !becall.IsNil() {
+									callresult = becall.MethodByName(method.Method).Call(method.Args)
+									becall = callresult[0]
+								} else {
+									isVaild = false
+									break
 								}
-								resultAndError := mname.Call(args)
-								nobj.Field(i).Set(resultAndError[0])
 							}
 
+							if isVaild {
+								callresults = append(callresults, callresult)
+								if !isCreateObj {
+									isCreateObj = true
+									nobj = reflect.New(ft.Type).Elem()
+								}
+							}
+						}
+
+						if isCreateObj {
+							fvalue := nobj.Field(ft.Index)
+							for _, callcallresult := range callresults {
+								fvalue = reflect.Append(fvalue, callcallresult[0])
+							}
+							nobj.Field(ft.Index).Set(fvalue)
+						}
+
+						// nobj.Elem().Field(ft.Index).Set(callresults[0])
+					} else {
+
+						if iter.Next() {
+
+							var isVaild = true
+							becall := reflect.ValueOf(iter.Node())
+							var callresult []reflect.Value
+							for _, method := range ft.Methods {
+								if !becall.IsNil() {
+									callresult = becall.MethodByName(method.Method).Call(method.Args)
+									becall = callresult[0]
+								} else {
+									isVaild = false
+									break
+								}
+							}
+
+							if isVaild {
+								if !isCreateObj {
+									isCreateObj = true
+									nobj = reflect.New(ft.Type).Elem()
+								}
+								nobj.Field(ft.Index).Set(callresult[0])
+							}
 						}
 					}
 				}
 			}
+
+			if isCreateObj {
+				// var nobj = reflect.New(otype)
+				results = append(results, nobj.Interface())
+			}
 		}
 	}
 
-	return nil
+	return results
 }
 
 // ForEachString after executing xpath, get the String of all result
