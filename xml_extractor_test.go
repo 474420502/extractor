@@ -172,7 +172,7 @@ func TestTag(t *testing.T) {
 	results := xp.ForEachTag(toject{})
 
 	for _, r := range results {
-		if len(r.(toject).Use) != 46 {
+		if len(r.(*toject).Use) != 46 {
 			t.Error("len != 46")
 		}
 	}
