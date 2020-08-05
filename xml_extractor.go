@@ -278,7 +278,9 @@ func (xp *XPath) ForEachTag(obj interface{}) []interface{} {
 					methodAndArgs := strings.Split(method, ",")
 					mt := methodtag{}
 					mt.Method = methodAndArgs[0]
-
+					if v, ok := methodDict[mt.Method]; ok {
+						mt.Method = v
+					}
 					// ft.Method = method[0]
 					var args []reflect.Value = nil
 					for _, arg := range methodAndArgs[1:] {
@@ -291,6 +293,9 @@ func (xp *XPath) ForEachTag(obj interface{}) []interface{} {
 			} else {
 				mt := methodtag{}
 				mt.Method = string(NodeName)
+				if v, ok := methodDict[mt.Method]; ok {
+					mt.Method = v
+				}
 				mt.Args = nil
 				ft.Methods = append(ft.Methods, mt)
 			}

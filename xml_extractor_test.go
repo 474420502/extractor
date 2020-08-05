@@ -157,7 +157,7 @@ func TestHtml(t *testing.T) {
 // 测试的object
 type toject struct {
 	Li  string   `exp:".//li" method:"String"`
-	Use []string `exp:".//use" method:"GetAttribute,width NodeValue"`
+	Use []string `exp:".//use" method:"GetAttribute,width Value"`
 }
 
 func TestTag(t *testing.T) {
