@@ -153,3 +153,49 @@ func TestHtml(t *testing.T) {
 
 	// t.Error(xp.ForEachText(".//dt"))
 }
+
+// 测试的object
+type toject struct {
+	Li  string   `exp:".//li" method:"String"`
+	Use []string `exp:".//use" method:"GetAttribute,width NodeValue"`
+}
+
+func TestTag(t *testing.T) {
+	// obj := &toject{}
+	f, err := os.Open("./testfile/test1.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	etor := ExtractXmlReader(f)
+	xp, err := etor.XPaths("//body")
+	results := xp.ForEachTag(toject{})
+
+	for _, r := range results {
+		if len(r.(toject).Use) != 46 {
+			t.Error("len != 46")
+		}
+	}
+
+	// objvalue := reflect.ValueOf(obj).Elem()
+	// objtype := reflect.TypeOf(obj).Elem()
+
+	// for i := 0; i < objtype.NumField(); i++ {
+	// 	f := objtype.Field(i)
+	// 	v := objvalue.Field(i)
+
+	// 	if exp, ok := f.Tag.Lookup("exp"); ok {
+	// 		if method, ok := f.Tag.Lookup("method"); ok {
+	// 			t.Error(exp, method)
+	// 		}
+	// 		if !v.CanSet() {
+	// 			t.Error(f.Name, " the field is not can set. must use uppercase")
+	// 		} else {
+	// 			objvalue.Field(i).Set(reflect.ValueOf(exp))
+	// 		}
+
+	// 	}
+	// }
+
+	// t.Error(obj)
+}
