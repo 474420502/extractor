@@ -15,7 +15,7 @@ func TestTag(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
+	
 	etor := ExtractXmlReader(f)
 	xp, err := etor.XPaths("//body")
     results := xp.ForEachTag(toject{})

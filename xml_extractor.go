@@ -65,10 +65,18 @@ func (etor *XmlExtractor) RegexpString(exp string) [][]string {
 	return regexp.MustCompile(exp).FindAllStringSubmatch(string(etor.content), -1)
 }
 
+// GetObjectByTag multi xpath extractor
+func (etor *XmlExtractor) GetObjectByTag(obj interface{}) interface{} {
+	if nobj, ok := getResultByTag(etor.doc, getFieldTags(obj)); ok {
+		return nobj.Addr().Interface()
+	}
+	return nil
+}
+
 // XPaths multi xpath extractor
 func (etor *XmlExtractor) XPaths(exp string) (*XPath, error) {
 	result, err := etor.doc.Find(exp)
-	return NewXPath([]types.XPathResult{result}), err
+	return NewXPath(result), err
 }
 
 // XPath libxml2 xpathresult
@@ -90,7 +98,7 @@ type XPath struct {
 	errorFlags ErrorFlags
 }
 
-func NewXPath(result []types.XPathResult) *XPath {
+func NewXPath(result ...types.XPathResult) *XPath {
 	xp := &XPath{results: result, errorFlags: ERROR_SKIP}
 	return xp
 }
@@ -259,10 +267,8 @@ func init() {
 	methodDict["Value"] = string(NodeValue)
 }
 
-// ForEachTag after executing xpath, get the String of all result
-func (xp *XPath) ForEachTag(obj interface{}) []interface{} {
+func getFieldTags(obj interface{}) []*fieldtag {
 	otype := reflect.TypeOf(obj)
-	var results []interface{}
 	var fieldtags []*fieldtag
 	for i := 0; i < otype.NumField(); i++ {
 
@@ -302,88 +308,99 @@ func (xp *XPath) ForEachTag(obj interface{}) []interface{} {
 
 			fieldtags = append(fieldtags, ft)
 		}
+	}
+	return fieldtags
+}
 
+func getResultByTag(node types.Node, fieldtags []*fieldtag) (createobj reflect.Value, isCreateObj bool) {
+
+	for _, ft := range fieldtags {
+		result, err := node.Find(ft.Exp)
+		// var inodes []types.Node
+		if err == nil {
+
+			iter := result.NodeIter()
+			if ft.Kind == reflect.Slice {
+
+				var callresults [][]reflect.Value
+				for iter.Next() {
+					becall := reflect.ValueOf(iter.Node())
+					var isVaild = true
+					var callresult []reflect.Value
+					for _, method := range ft.Methods {
+						if !becall.IsNil() {
+							callresult = becall.MethodByName(method.Method).Call(method.Args)
+							becall = callresult[0]
+						} else {
+							isVaild = false
+							break
+						}
+					}
+
+					if isVaild {
+						callresults = append(callresults, callresult)
+						if !isCreateObj {
+							isCreateObj = true
+							createobj = reflect.New(ft.Type).Elem()
+						}
+					}
+				}
+
+				if isCreateObj {
+					fvalue := createobj.Field(ft.Index)
+					for _, callcallresult := range callresults {
+						fvalue = reflect.Append(fvalue, callcallresult[0])
+					}
+					createobj.Field(ft.Index).Set(fvalue)
+				}
+
+				// nobj.Elem().Field(ft.Index).Set(callresults[0])
+			} else {
+
+				if iter.Next() {
+
+					var isVaild = true
+					becall := reflect.ValueOf(iter.Node())
+					var callresult []reflect.Value
+					for _, method := range ft.Methods {
+						if !becall.IsNil() {
+							callresult = becall.MethodByName(method.Method).Call(method.Args)
+							becall = callresult[0]
+						} else {
+							isVaild = false
+							break
+						}
+					}
+
+					if isVaild {
+						if !isCreateObj {
+							isCreateObj = true
+							createobj = reflect.New(ft.Type).Elem()
+						}
+						createobj.Field(ft.Index).Set(callresult[0])
+					}
+				}
+			}
+		}
 	}
 
+	return
+}
+
+// ForEachTag after executing xpath, get the String of all result
+func (xp *XPath) ForEachTag(obj interface{}) []interface{} {
+	// otype := reflect.TypeOf(obj)
+	var results []interface{}
+	fieldtags := getFieldTags(obj)
+
 	// var dict map[uintptr]types.Node = make(map[uintptr]types.Node)
+
 	for _, xpresult := range xp.results {
 
 		iter := xpresult.NodeIter()
 		for iter.Next() {
 			node := iter.Node()
-			var nobj reflect.Value
-			var isCreateObj bool = false
-			for _, ft := range fieldtags {
-				result, err := node.Find(ft.Exp)
-				// var inodes []types.Node
-				if err == nil {
-
-					iter := result.NodeIter()
-					if ft.Kind == reflect.Slice {
-
-						var callresults [][]reflect.Value
-						for iter.Next() {
-							becall := reflect.ValueOf(iter.Node())
-							var isVaild = true
-							var callresult []reflect.Value
-							for _, method := range ft.Methods {
-								if !becall.IsNil() {
-									callresult = becall.MethodByName(method.Method).Call(method.Args)
-									becall = callresult[0]
-								} else {
-									isVaild = false
-									break
-								}
-							}
-
-							if isVaild {
-								callresults = append(callresults, callresult)
-								if !isCreateObj {
-									isCreateObj = true
-									nobj = reflect.New(ft.Type).Elem()
-								}
-							}
-						}
-
-						if isCreateObj {
-							fvalue := nobj.Field(ft.Index)
-							for _, callcallresult := range callresults {
-								fvalue = reflect.Append(fvalue, callcallresult[0])
-							}
-							nobj.Field(ft.Index).Set(fvalue)
-						}
-
-						// nobj.Elem().Field(ft.Index).Set(callresults[0])
-					} else {
-
-						if iter.Next() {
-
-							var isVaild = true
-							becall := reflect.ValueOf(iter.Node())
-							var callresult []reflect.Value
-							for _, method := range ft.Methods {
-								if !becall.IsNil() {
-									callresult = becall.MethodByName(method.Method).Call(method.Args)
-									becall = callresult[0]
-								} else {
-									isVaild = false
-									break
-								}
-							}
-
-							if isVaild {
-								if !isCreateObj {
-									isCreateObj = true
-									nobj = reflect.New(ft.Type).Elem()
-								}
-								nobj.Field(ft.Index).Set(callresult[0])
-							}
-						}
-					}
-				}
-			}
-
-			if isCreateObj {
+			if nobj, isCreateObj := getResultByTag(node, fieldtags); isCreateObj {
 				// var nobj = reflect.New(otype)
 				results = append(results, nobj.Addr().Interface())
 			}
@@ -608,6 +625,6 @@ func (xp *XPath) ForEach(exp string) (newxpath *XPath, errorlist []error) {
 		}
 	}
 
-	newxpath = NewXPath(results)
+	newxpath = NewXPath(results...)
 	return
 }
