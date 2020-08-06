@@ -630,6 +630,7 @@ func (xp *XPath) ForEach(exp string) (newxpath *XPath, errorlist []error) {
 				if xp.errorFlags == ERROR_SKIP {
 					errorlist = append(errorlist, err)
 				} else {
+					result.Free()
 					break
 				}
 			}
