@@ -6,12 +6,13 @@ import (
 	"log"
 	"reflect"
 	"regexp"
+	"runtime"
 	"strings"
 
-	"github.com/474420502/libxml2"
-	"github.com/474420502/libxml2/clib"
-	"github.com/474420502/libxml2/parser"
-	"github.com/474420502/libxml2/types"
+	"github.com/lestrrat-go/libxml2"
+	"github.com/lestrrat-go/libxml2/clib"
+	"github.com/lestrrat-go/libxml2/parser"
+	"github.com/lestrrat-go/libxml2/types"
 	"github.com/pkg/errors"
 )
 
@@ -30,6 +31,9 @@ func ExtractXmlString(content string, options ...parser.HTMLOption) *XmlExtracto
 	}
 	e := &XmlExtractor{}
 	e.doc = doc
+	runtime.SetFinalizer(e.doc, func(obj interface{}) {
+		(obj.(types.Document)).Free()
+	})
 	e.content = c
 	return e
 }
@@ -42,6 +46,9 @@ func ExtractXml(content []byte, options ...parser.HTMLOption) *XmlExtractor {
 	}
 	e := &XmlExtractor{}
 	e.doc = doc
+	runtime.SetFinalizer(e.doc, func(obj interface{}) {
+		(obj.(types.Document)).Free()
+	})
 	e.content = content
 	return e
 }
@@ -65,7 +72,7 @@ func (etor *XmlExtractor) RegexpString(exp string) [][]string {
 	return regexp.MustCompile(exp).FindAllStringSubmatch(string(etor.content), -1)
 }
 
-// GetObjectByTag multi xpath extractor
+// GetObjectByTag single xpath extractor
 func (etor *XmlExtractor) GetObjectByTag(obj interface{}) interface{} {
 	if nobj, ok := getResultByTag(etor.doc, getFieldTags(obj)); ok {
 		return nobj.Addr().Interface()
@@ -100,6 +107,11 @@ type XPath struct {
 
 func NewXPath(result ...types.XPathResult) *XPath {
 	xp := &XPath{results: result, errorFlags: ERROR_SKIP}
+	runtime.SetFinalizer(xp, func(obj interface{}) {
+		for _, r := range (obj.(*XPath)).results {
+			r.Free()
+		}
+	})
 	return xp
 }
 
