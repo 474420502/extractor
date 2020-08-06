@@ -107,11 +107,6 @@ type XPath struct {
 
 func NewXPath(result ...types.XPathResult) *XPath {
 	xp := &XPath{results: result, errorFlags: ERROR_SKIP}
-	runtime.SetFinalizer(xp, func(obj interface{}) {
-		for _, r := range (obj.(*XPath)).results {
-			r.Free()
-		}
-	})
 	return xp
 }
 
