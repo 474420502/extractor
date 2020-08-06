@@ -6,13 +6,12 @@ import (
 	"log"
 	"reflect"
 	"regexp"
-	"runtime"
 	"strings"
 
-	"github.com/lestrrat-go/libxml2"
-	"github.com/lestrrat-go/libxml2/clib"
-	"github.com/lestrrat-go/libxml2/parser"
-	"github.com/lestrrat-go/libxml2/types"
+	"github.com/474420502/libxml2"
+	"github.com/474420502/libxml2/clib"
+	"github.com/474420502/libxml2/parser"
+	"github.com/474420502/libxml2/types"
 	"github.com/pkg/errors"
 )
 
@@ -31,9 +30,6 @@ func ExtractXmlString(content string, options ...parser.HTMLOption) *XmlExtracto
 	}
 	e := &XmlExtractor{}
 	e.doc = doc
-	runtime.SetFinalizer(e.doc, func(obj interface{}) {
-		(obj.(types.Document)).Free()
-	})
 	e.content = c
 	return e
 }
@@ -46,9 +42,6 @@ func ExtractXml(content []byte, options ...parser.HTMLOption) *XmlExtractor {
 	}
 	e := &XmlExtractor{}
 	e.doc = doc
-	runtime.SetFinalizer(e.doc, func(obj interface{}) {
-		(obj.(types.Document)).Free()
-	})
 	e.content = content
 	return e
 }
