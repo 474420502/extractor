@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 func TestRegexp(t *testing.T) {
@@ -176,26 +178,53 @@ func TestTag(t *testing.T) {
 			t.Error("len != 46")
 		}
 	}
+}
 
-	// objvalue := reflect.ValueOf(obj).Elem()
-	// objtype := reflect.TypeOf(obj).Elem()
+type tagObject1 struct {
+	Color string `exp:".//div[2]" method:"Attribute,class Value"`
+	Herf  string `exp:".//div[2]/a" method:"Attribute,href Value"`
+}
 
-	// for i := 0; i < objtype.NumField(); i++ {
-	// 	f := objtype.Field(i)
-	// 	v := objvalue.Field(i)
+type tagObject2 struct {
+	Color string `exp:"self::div" method:"Attribute,class Value"`
+	Herf  string `exp:".//a" method:"Attribute,href Value"`
+}
 
-	// 	if exp, ok := f.Tag.Lookup("exp"); ok {
-	// 		if method, ok := f.Tag.Lookup("method"); ok {
-	// 			t.Error(exp, method)
-	// 		}
-	// 		if !v.CanSet() {
-	// 			t.Error(f.Name, " the field is not can set. must use uppercase")
-	// 		} else {
-	// 			objvalue.Field(i).Set(reflect.ValueOf(exp))
-	// 		}
+func TestTag1(t *testing.T) {
+	etor := ExtractXmlString(`<html>
+		<head></head>
+		<body>
+			<div class="red">
+				<a href="https://www.baidu.com"></a>
+			</div>
+			<div class="blue">
+				<a href="https://www.google.com"></a>
+			</div>
 
-	// 	}
-	// }
+			<div class="black"> 
+				<span>
+					good你好
+				</span>
+			</div>
+		</body>
+	</html>`)
 
-	// t.Error(obj)
+	to := etor.GetObjectByTag(tagObject1{}).(*tagObject1)
+	if to.Color != "blue" {
+		t.Error(to)
+	}
+
+	if to.Herf != "https://www.google.com" {
+		t.Error(to)
+	}
+
+	xp, err := etor.XPaths("//div/a/..")
+	if err != nil {
+		t.Error(err)
+	} else {
+		sr := spew.Sprint(xp.ForEachTag(tagObject2{}))
+		if sr != "[<*>{red https://www.baidu.com} <*>{blue https://www.google.com}]" {
+			t.Error(sr)
+		}
+	}
 }
