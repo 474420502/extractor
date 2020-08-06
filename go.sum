@@ -1,7 +1,11 @@
-github.com/474420502/libxml2 v0.0.0-20200803084225-29e441d26406 h1:nLvl2D2y+hxCglLnRmLqwRGwmUsXQt8ga46zGySTU1I=
-github.com/474420502/libxml2 v0.0.0-20200803084225-29e441d26406/go.mod h1:bUbcte7hFuLijGG6/+gGxurW3XvxE/CBdfAAlsIWj34=
+github.com/474420502/libxml2 v0.0.0-20200215080510-6483566f52cb h1:L7kXxXaU6iVAGUqxoRSsDRPGx2wIJ9cvVpg4umPwIEg=
+github.com/474420502/libxml2 v0.0.0-20200215080510-6483566f52cb/go.mod h1:lkeB3u345KI17l0BjcZ6dhSIFx7KnnKz88bZ+HBbp7c=
+github.com/474420502/libxml2 v0.0.0-20200806111302-aa4be92ad592 h1:kgvx2MvoMhkrzLVjM6C6RIcshgI80fnq5/LqAnTOMxQ=
+github.com/474420502/libxml2 v0.0.0-20200806111302-aa4be92ad592/go.mod h1:bUbcte7hFuLijGG6/+gGxurW3XvxE/CBdfAAlsIWj34=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/lestrrat-go/libxml2 v0.0.0-20200215080510-6483566f52cb h1:qqNmX9V9n4byPp7LUvUf7CPhMPYO9ol4ElpbD3DgzuY=
 github.com/lestrrat-go/libxml2 v0.0.0-20200215080510-6483566f52cb/go.mod h1:fy/ZVbgyB83mtricxwSW3zqIRXWOVpKG2PvdUDFeC58=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
