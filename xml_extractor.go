@@ -6,12 +6,13 @@ import (
 	"log"
 	"reflect"
 	"regexp"
+	"runtime"
 	"strings"
 
-	"github.com/474420502/libxml2"
-	"github.com/474420502/libxml2/clib"
-	"github.com/474420502/libxml2/parser"
-	"github.com/474420502/libxml2/types"
+	"github.com/lestrrat-go/libxml2"
+	"github.com/lestrrat-go/libxml2/clib"
+	"github.com/lestrrat-go/libxml2/parser"
+	"github.com/lestrrat-go/libxml2/types"
 	"github.com/pkg/errors"
 )
 
@@ -30,6 +31,9 @@ func ExtractXmlString(content string, options ...parser.HTMLOption) *XmlExtracto
 	}
 	e := &XmlExtractor{}
 	e.doc = doc
+	runtime.SetFinalizer(e, func(obj interface{}) {
+		(obj.(*XmlExtractor)).doc.Free()
+	})
 	e.content = c
 	return e
 }
@@ -42,6 +46,9 @@ func ExtractXml(content []byte, options ...parser.HTMLOption) *XmlExtractor {
 	}
 	e := &XmlExtractor{}
 	e.doc = doc
+	runtime.SetFinalizer(e, func(obj interface{}) {
+		(obj.(*XmlExtractor)).doc.Free()
+	})
 	e.content = content
 	return e
 }
@@ -82,6 +89,9 @@ func (etor *XmlExtractor) XPaths(exp string) (*XPath, error) {
 // XPath libxml2 xpathresult
 func (etor *XmlExtractor) XPath(exp string) (result types.XPathResult, err error) {
 	result, err = etor.doc.Find(exp)
+	runtime.SetFinalizer(result, func(obj interface{}) {
+		(obj.(types.XPathResult)).Free()
+	})
 	return
 }
 
@@ -100,6 +110,11 @@ type XPath struct {
 
 func NewXPath(result ...types.XPathResult) *XPath {
 	xp := &XPath{results: result, errorFlags: ERROR_SKIP}
+	runtime.SetFinalizer(xp, func(obj interface{}) {
+		for _, r := range (obj.(*XPath)).results {
+			r.Free()
+		}
+	})
 	return xp
 }
 
