@@ -83,7 +83,7 @@ func (etor *XmlExtractor) GetObjectByTag(obj interface{}) interface{} {
 // XPaths multi xpath extractor
 func (etor *XmlExtractor) XPaths(exp string) (*XPath, error) {
 	result, err := etor.doc.Find(exp)
-	return NewXPath(result), err
+	return newXPath(result), err
 }
 
 // XPath libxml2 xpathresult
@@ -108,7 +108,7 @@ type XPath struct {
 	errorFlags ErrorFlags
 }
 
-func NewXPath(result ...types.XPathResult) *XPath {
+func newXPath(result ...types.XPathResult) *XPath {
 	xp := &XPath{results: result, errorFlags: ERROR_SKIP}
 	runtime.SetFinalizer(xp, func(obj interface{}) {
 		for _, r := range (obj.(*XPath)).results {
@@ -641,6 +641,6 @@ func (xp *XPath) ForEach(exp string) (newxpath *XPath, errorlist []error) {
 		}
 	}
 
-	newxpath = NewXPath(results...)
+	newxpath = newXPath(results...)
 	return
 }
