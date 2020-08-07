@@ -3,10 +3,8 @@ module github.com/474420502/extractor
 go 1.14
 
 require (
-	github.com/474420502/libxml2 v0.0.0-20200807040518-4ef6186ae68c
-	github.com/antchfx/htmlquery v1.2.3 // indirect
-	github.com/antchfx/xpath v1.1.10 // indirect
 	github.com/davecgh/go-spew v1.1.1
+	github.com/lestrrat-go/libxml2 v0.0.0-20200215080510-6483566f52cb
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/tidwall/gjson v1.6.0
