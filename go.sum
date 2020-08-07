@@ -8,6 +8,8 @@ github.com/474420502/libxml2 v0.0.0-20200807033649-9731e0a44bf0 h1:EiO+pSoFk7TTv
 github.com/474420502/libxml2 v0.0.0-20200807033649-9731e0a44bf0/go.mod h1:bUbcte7hFuLijGG6/+gGxurW3XvxE/CBdfAAlsIWj34=
 github.com/474420502/libxml2 v0.0.0-20200807034854-eaa2a69a2790 h1:vzHGXv0e7MX+MSZcz4SjRJUfzoUpX96Qf0f48T6dkxk=
 github.com/474420502/libxml2 v0.0.0-20200807034854-eaa2a69a2790/go.mod h1:bUbcte7hFuLijGG6/+gGxurW3XvxE/CBdfAAlsIWj34=
+github.com/474420502/libxml2 v0.0.0-20200807035356-cd2e51185f4b h1:q9qSCx9gm7gS6Xr2nmKqkiu2FApQJFkqvTsrAzcWXps=
+github.com/474420502/libxml2 v0.0.0-20200807035356-cd2e51185f4b/go.mod h1:bUbcte7hFuLijGG6/+gGxurW3XvxE/CBdfAAlsIWj34=
 github.com/antchfx/htmlquery v1.2.3 h1:sP3NFDneHx2stfNXCKbhHFo8XgNjCACnU/4AO5gWz6M=
 github.com/antchfx/htmlquery v1.2.3/go.mod h1:B0ABL+F5irhhMWg54ymEZinzMSi0Kt3I2if0BLYa3V0=
 github.com/antchfx/xpath v1.1.6/go.mod h1:Yee4kTMuNiPYJ7nSNorELQMr1J33uOpXDMByNYhvtNk=
