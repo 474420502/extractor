@@ -37,14 +37,14 @@ func TestXPathMethod(t *testing.T) {
 		t.Error(errs)
 	}
 
-	for _, a := range as.GetNodeNames() {
+	for _, a := range as.GetTagNames() {
 		if a != "a" {
 			t.Error(a)
 		}
 	}
 
 	for _, a := range as.GetAttributes("role") {
-		if a.NodeValue() != "button" {
+		if a.GetValue() != "button" {
 			t.Error(a)
 		}
 	}
@@ -75,21 +75,31 @@ func TestHtml(t *testing.T) {
 		t.Error(xp.GetTexts())
 	}
 
-	if len(xp.GetNodeStrings()) != 5 {
-		t.Error(xp.GetNodeStrings())
+	if len(xp.GetStrings()) != 5 {
+		t.Error(xp.GetStrings())
 	}
 
-	if fmt.Sprint(xp.GetNodeNames()) != "[dt dt dt dt dt]" {
-		t.Error(xp.GetNodeNames())
+	if fmt.Sprint(xp.GetTagNames()) != "[dt dt dt dt dt]" {
+		t.Error(xp.GetTagNames())
 	}
 
-	if fmt.Sprint(xp.GetNodeValues()) != "[Trends History 関連ゲームタイトル 関連チャンネル 関連キーワード]" {
-		t.Error(xp.GetNodeValues())
+	if fmt.Sprint(xp.GetTexts()) != "[Trends History 関連ゲームタイトル 関連チャンネル 関連キーワード]" {
+		t.Error(xp.GetTexts())
 	}
 
 	xp, err = etor.XPaths("//*[contains(@class, 'l-headerMain__search__pcContent')]")
 	if err != nil {
 		t.Error(err)
+	}
+
+	if len(xp.GetAttrKeysByValue("js-afterLogin l-headerMain__search__pcContent  ")) != 1 {
+		t.Error("len should be 1")
+		t.Error(xp.GetStrings())
+	}
+
+	if len(xp.GetAttrValuesByKey("class")) != 7 {
+		t.Error("len should be 7", len(xp.GetAttrValuesByKey("class")))
+		t.Error(xp.GetStrings())
 	}
 
 	if txts, errs := xp.ForEachText(".//dt"); len(errs) > 0 {
@@ -137,7 +147,7 @@ func TestHtml(t *testing.T) {
 		}
 	}
 
-	if txts, errs := xp.ForEachName(".//a[@role='button']"); len(errs) > 0 {
+	if txts, errs := xp.ForEachTagName(".//a[@role='button']"); len(errs) > 0 {
 		t.Error(errs)
 	} else {
 		if len(txts) != 34 {
@@ -159,7 +169,7 @@ func TestHtml(t *testing.T) {
 // 测试的object
 type toject struct {
 	Li  string   `exp:".//li" method:"String"`
-	Use []string `exp:".//use" method:"GetAttribute,width Value"`
+	Use []string `exp:".//use" method:"AttributeValue,width"`
 }
 
 func TestTag(t *testing.T) {
@@ -174,20 +184,27 @@ func TestTag(t *testing.T) {
 	results := xp.ForEachTag(toject{})
 
 	for _, r := range results {
-		if len(r.(*toject).Use) != 46 {
-			t.Error("len != 46")
+		if len(r.(*toject).Use) != 54 {
+			t.Error("len != 54, len is", len(r.(*toject).Use))
+			l := r.(*toject).Use
+			t.Errorf("%v", l)
 		}
 	}
 }
 
 type tagObject1 struct {
-	Color string `exp:".//div[2]" method:"Attribute,class Value"`
-	Herf  string `exp:".//div[2]/a" method:"Attribute,href Value"`
+	Color string `exp:".//div[2]" method:"AttributeValue,class"`
+	Herf  string `exp:".//div[2]/a" method:"AttributeValue,href"`
 }
 
 type tagObject2 struct {
-	Color string `exp:"self::div" method:"Attribute,class Value"`
-	Herf  string `exp:".//a" method:"Attribute,href Value"`
+	Color string `exp:"self::div" method:"AttributeValue,class"`
+	Herf  string `exp:".//a" method:"AttributeValue,href"`
+}
+
+type tagObject3 struct {
+	Color string `exp:"self::div/@class"`
+	Herf  string `exp:".//a"`
 }
 
 func TestTag1(t *testing.T) {
@@ -227,4 +244,15 @@ func TestTag1(t *testing.T) {
 			t.Error(sr)
 		}
 	}
+
+	xp, err = etor.XPaths("//div/a/..")
+	if err != nil {
+		t.Error(err)
+	} else {
+		sr := spew.Sprint(xp.ForEachTag(tagObject3{}))
+		if sr != `[<*>{<class>red</class> <a href="https://www.baidu.com"></a>} <*>{<class>blue</class> <a href="https://www.google.com"></a>}]` {
+			t.Error(sr)
+		}
+	}
+
 }
