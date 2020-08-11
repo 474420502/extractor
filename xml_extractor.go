@@ -74,7 +74,8 @@ func (etor *XmlExtractor) XPaths(exp string) (*XPath, error) {
 
 // XPath libxml2 xpathresult
 func (etor *XmlExtractor) XPath(exp string) (result *htmlquery.Node, err error) {
-	return etor.doc.Query(exp)
+	n, err := etor.doc.Query(exp)
+	return (*htmlquery.Node)(n), err
 }
 
 type ErrorFlags int
