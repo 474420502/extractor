@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/474420502/htmlquery"
-	"github.com/lestrrat-go/libxml2/parser"
 	"github.com/pkg/errors"
 )
 
@@ -21,12 +20,12 @@ type XmlExtractor struct {
 }
 
 // ExtractXmlString extractor xml(html)
-func ExtractXmlString(content string, options ...parser.HTMLOption) *XmlExtractor {
+func ExtractXmlString(content string) *XmlExtractor {
 	return ExtractXml([]byte(content))
 }
 
 // ExtractXml extractor xml(html)
-func ExtractXml(content []byte, options ...parser.HTMLOption) *XmlExtractor {
+func ExtractXml(content []byte) *XmlExtractor {
 	doc, err := htmlquery.Parse(bytes.NewReader(content))
 	if err != nil {
 		panic(err)
@@ -41,12 +40,12 @@ func ExtractXml(content []byte, options ...parser.HTMLOption) *XmlExtractor {
 }
 
 // ExtractXmlReader extractor xml(html)
-func ExtractXmlReader(in io.Reader, options ...parser.HTMLOption) *XmlExtractor {
+func ExtractXmlReader(in io.Reader) *XmlExtractor {
 	buf := &bytes.Buffer{}
 	if _, err := buf.ReadFrom(in); err != nil {
 		panic(errors.Wrap(err, "failed to rea from io.Reader"))
 	}
-	return ExtractXml(buf.Bytes(), options...)
+	return ExtractXml(buf.Bytes())
 }
 
 // RegexpBytes multi xpath extractor
