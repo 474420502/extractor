@@ -257,3 +257,48 @@ func TestTag1(t *testing.T) {
 	}
 
 }
+
+type tagObject4 struct {
+	Num    int     `exp:"//div[@num]" mth:"AttrValue,num" `
+	Num321 float64 `exp:"//div[@num]" mth:"AttrValue,num" index:"1"`
+	Numstr string  `exp:"//div[@num]" mth:"AttrValue,num"`
+	Nums   []int32 `exp:"//div[@num]" mth:"AttrValue,num"`
+}
+
+func TestType(t *testing.T) {
+	etor := ExtractXmlString(`<html>
+	<head></head>
+	<body>
+		<div class="red" num="123">
+			<a href="https://www.baidu.com"></a>
+		</div>
+		<div class="blue" num="321">
+			<a href="https://www.google.com"></a>
+		</div>
+
+		<div class="black" num="456"> 
+			<span>
+				good你好
+			</span>
+		</div>
+	</body>
+</html>`)
+
+	obj4 := etor.GetObjectByTag(tagObject4{}).(*tagObject4)
+
+	if obj4.Num == 0 {
+		t.Error("tag parse errror", obj4.Num)
+	}
+
+	if len(obj4.Nums) != 3 {
+		t.Error("tag parse errror", obj4.Nums)
+	}
+
+	if obj4.Numstr != "123" {
+		t.Error("tag parse errror", obj4.Numstr)
+	}
+
+	if obj4.Num321 != 321 {
+		t.Error("tag parse errror", obj4.Num321)
+	}
+}
