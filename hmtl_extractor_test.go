@@ -238,10 +238,15 @@ func TestTag1(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	} else {
-		sr := spew.Sprint(xp.ForEachTag(tagObject2{}))
-		if sr != "[<*>{red https://www.baidu.com} <*>{blue https://www.google.com}]" {
-			t.Error(sr)
+		tobj2 := xp.ForEachTag(tagObject2{})
+		if o := tobj2[0].(*tagObject2); o.Herf != "https://www.baidu.com" || o.Color != "red" {
+			t.Error(o)
 		}
+
+		if o := tobj2[1].(*tagObject2); o.Herf != "https://www.google.com" || o.Color != "blue" {
+			t.Error(o)
+		}
+
 	}
 
 	xp, err = etor.XPaths("//div/a/..")
