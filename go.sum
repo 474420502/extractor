@@ -12,6 +12,10 @@ github.com/474420502/htmlquery v1.2.4-0.20200810102350-3dc3bfce9ae2 h1:zrIc4YugF
 github.com/474420502/htmlquery v1.2.4-0.20200810102350-3dc3bfce9ae2/go.mod h1:AoSN890esHwNKecV0tCs+W0ele1xgFL1Jqk6UcrdxgU=
 github.com/474420502/htmlquery v1.2.4-0.20200810165859-a0e2c521c7c2 h1:4F1tpJ+sEkb3N+XD+Wb9MFiQmOMm3bHp8QUP+BQvkVk=
 github.com/474420502/htmlquery v1.2.4-0.20200810165859-a0e2c521c7c2/go.mod h1:AoSN890esHwNKecV0tCs+W0ele1xgFL1Jqk6UcrdxgU=
+github.com/474420502/htmlquery v1.2.4-0.20200812071753-de68b9831b0b h1:YQbEXzmuXdheT7siRzmvTaXyBL6Qn4SYvD1x0sLJx6I=
+github.com/474420502/htmlquery v1.2.4-0.20200812071753-de68b9831b0b/go.mod h1:AoSN890esHwNKecV0tCs+W0ele1xgFL1Jqk6UcrdxgU=
+github.com/474420502/htmlquery v1.2.4-0.20200812072201-e871dd09247a h1:E1T6CYQKsUn7fMvNbeKfISjBLfOJjZX4KpWwStT20Kc=
+github.com/474420502/htmlquery v1.2.4-0.20200812072201-e871dd09247a/go.mod h1:AoSN890esHwNKecV0tCs+W0ele1xgFL1Jqk6UcrdxgU=
 github.com/474420502/requests v1.6.0 h1:f4h4j40eT0P5whhg9LdkotD8CaKjtuDu/vz9iSUkCgY=
 github.com/474420502/requests v1.6.0/go.mod h1:SLXrQ5dL9c7dkIeKNUCBAjOIt3J9KFCS2RQjWJecNwo=
 github.com/antchfx/xpath v1.1.6 h1:6sVh6hB5T6phw1pFpHRQ+C4bd8sNI+O58flqtg7h0R0=

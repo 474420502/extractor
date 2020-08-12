@@ -3,10 +3,9 @@ module github.com/474420502/extractor
 go 1.14
 
 require (
-	github.com/474420502/htmlquery v1.2.4-0.20200810165859-a0e2c521c7c2
+	github.com/474420502/htmlquery v1.2.4-0.20200812072201-e871dd09247a
 	github.com/474420502/requests v1.6.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/lestrrat-go/libxml2 v0.0.0-20200215080510-6483566f52cb
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/tidwall/gjson v1.6.0
