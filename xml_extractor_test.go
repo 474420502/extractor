@@ -198,8 +198,8 @@ type tagObject1 struct {
 }
 
 type tagObject2 struct {
-	Color string `exp:"self::div" method:"AttributeValue,class"`
-	Herf  string `exp:".//a" method:"AttributeValue,href"`
+	Color string `exp:"self::div" mth:"AttrValue,class"`
+	Herf  string `exp:".//a" mth:"AttributeValue,href"`
 }
 
 type tagObject3 struct {
@@ -249,7 +249,8 @@ func TestTag1(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	} else {
-		sr := spew.Sprint(xp.ForEachTag(tagObject3{}))
+		tag3 := xp.ForEachTag(tagObject3{})
+		sr := spew.Sprint(tag3)
 		if sr != `[<*>{<class>red</class> <a href="https://www.baidu.com"></a>} <*>{<class>blue</class> <a href="https://www.google.com"></a>}]` {
 			t.Error(sr)
 		}

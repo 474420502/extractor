@@ -32,9 +32,6 @@ func ExtractXml(content []byte) *XmlExtractor {
 	}
 	e := &XmlExtractor{}
 	e.doc = doc
-	// runtime.SetFinalizer(e, func(obj interface{}) {
-	// 	(obj.(*XmlExtractor)).doc.Free()
-	// })
 	e.content = content
 	return e
 }
@@ -74,7 +71,8 @@ func (etor *XmlExtractor) XPaths(exp string) (*XPath, error) {
 
 // XPath libxml2 xpathresult
 func (etor *XmlExtractor) XPath(exp string) (result *htmlquery.Node, err error) {
-	return etor.doc.Query(exp)
+	n, err := etor.doc.Query(exp)
+	return (*htmlquery.Node)(n), err
 }
 
 type ErrorFlags int
@@ -228,6 +226,8 @@ type fieldtag struct {
 	Methods []methodtag
 }
 
+var DefaultMethod = "String"
+
 var methodDict map[string]string
 
 type nodeMethod string
@@ -241,12 +241,16 @@ const (
 	// // NodeValue Node.NodeValue()
 	// NodeValue nodeMethod = "NodeValue"
 	// ParentNode Node.NodeValue()
-	ParentNode nodeMethod = "ParentNode"
+	ParentNode     nodeMethod = "ParentNode"
+	AttributeValue nodeMethod = "AttributeValue"
+	Text           nodeMethod = "Text"
+	String         nodeMethod = "String"
 )
 
 func init() {
 	methodDict = make(map[string]string)
 	methodDict["Attribute"] = string(GetAttribute)
+	methodDict["AttrValue"] = string(AttributeValue)
 	methodDict["Name"] = string(NodeName)
 }
 
@@ -262,26 +266,33 @@ func getFieldTags(obj interface{}) []*fieldtag {
 			ft.Exp = exp
 			ft.Kind = f.Type.Kind()
 			ft.Type = otype
-			if smethod, ok := f.Tag.Lookup("method"); ok {
-				for _, method := range strings.Split(smethod, " ") {
-					methodAndArgs := strings.Split(method, ",")
-					mt := methodtag{}
-					mt.Method = methodAndArgs[0]
-					if v, ok := methodDict[mt.Method]; ok {
-						mt.Method = v
-					}
-					// ft.Method = method[0]
-					var args []reflect.Value = nil
-					for _, arg := range methodAndArgs[1:] {
-						args = append(args, reflect.ValueOf(arg))
-					}
-					mt.Args = args
-					ft.Methods = append(ft.Methods, mt)
-				}
 
-			} else {
+			var smethod string
+			var ok bool
+			for _, mth := range []string{"method", "mth"} {
+				if smethod, ok = f.Tag.Lookup(mth); ok {
+					for _, method := range strings.Split(smethod, " ") {
+						methodAndArgs := strings.Split(method, ",")
+						mt := methodtag{}
+						mt.Method = methodAndArgs[0]
+						if v, ok := methodDict[mt.Method]; ok {
+							mt.Method = v
+						}
+						// ft.Method = method[0]
+						var args []reflect.Value = nil
+						for _, arg := range methodAndArgs[1:] {
+							args = append(args, reflect.ValueOf(arg))
+						}
+						mt.Args = args
+						ft.Methods = append(ft.Methods, mt)
+					}
+					break
+				}
+			}
+
+			if !ok {
 				mt := methodtag{}
-				mt.Method = "String"
+				mt.Method = DefaultMethod
 				if v, ok := methodDict[mt.Method]; ok {
 					mt.Method = v
 				}
@@ -358,7 +369,7 @@ func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj refl
 								callresult = bymethod.Call(method.Args)
 								becall = callresult[0]
 							} else {
-								log.Panicln(method.Method, "is not exists")
+								log.Panicln(becall.Type(), becall, method.Method, "is not exists")
 							}
 						} else {
 							isVaild = false
