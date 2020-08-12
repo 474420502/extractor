@@ -6,38 +6,39 @@ import (
 	"log"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/474420502/htmlquery"
 	"github.com/pkg/errors"
 )
 
-// XmlExtractor 提取器
-type XmlExtractor struct {
+// HmtlExtractor 提取器
+type HmtlExtractor struct {
 	content []byte
 	// doc     types.Document
 	doc *htmlquery.Node
 }
 
 // ExtractXmlString extractor xml(html)
-func ExtractXmlString(content string) *XmlExtractor {
+func ExtractXmlString(content string) *HmtlExtractor {
 	return ExtractXml([]byte(content))
 }
 
 // ExtractXml extractor xml(html)
-func ExtractXml(content []byte) *XmlExtractor {
+func ExtractXml(content []byte) *HmtlExtractor {
 	doc, err := htmlquery.Parse(bytes.NewReader(content))
 	if err != nil {
 		panic(err)
 	}
-	e := &XmlExtractor{}
+	e := &HmtlExtractor{}
 	e.doc = doc
 	e.content = content
 	return e
 }
 
 // ExtractXmlReader extractor xml(html)
-func ExtractXmlReader(in io.Reader) *XmlExtractor {
+func ExtractXmlReader(in io.Reader) *HmtlExtractor {
 	buf := &bytes.Buffer{}
 	if _, err := buf.ReadFrom(in); err != nil {
 		panic(errors.Wrap(err, "failed to rea from io.Reader"))
@@ -46,17 +47,17 @@ func ExtractXmlReader(in io.Reader) *XmlExtractor {
 }
 
 // RegexpBytes multi xpath extractor
-func (etor *XmlExtractor) RegexpBytes(exp string) [][][]byte {
+func (etor *HmtlExtractor) RegexpBytes(exp string) [][][]byte {
 	return regexp.MustCompile(exp).FindAllSubmatch(etor.content, -1)
 }
 
 // RegexpString multi xpath extractor
-func (etor *XmlExtractor) RegexpString(exp string) [][]string {
+func (etor *HmtlExtractor) RegexpString(exp string) [][]string {
 	return regexp.MustCompile(exp).FindAllStringSubmatch(string(etor.content), -1)
 }
 
 // GetObjectByTag single xpath extractor
-func (etor *XmlExtractor) GetObjectByTag(obj interface{}) interface{} {
+func (etor *HmtlExtractor) GetObjectByTag(obj interface{}) interface{} {
 	if nobj, ok := getResultByTag(etor.doc, getFieldTags(obj)); ok {
 		return nobj.Addr().Interface()
 	}
@@ -64,13 +65,13 @@ func (etor *XmlExtractor) GetObjectByTag(obj interface{}) interface{} {
 }
 
 // XPaths multi xpath extractor
-func (etor *XmlExtractor) XPaths(exp string) (*XPath, error) {
+func (etor *HmtlExtractor) XPaths(exp string) (*XPath, error) {
 	result, err := etor.doc.QueryAll(exp)
 	return newXPath(result...), err
 }
 
 // XPath libxml2 xpathresult
-func (etor *XmlExtractor) XPath(exp string) (result *htmlquery.Node, err error) {
+func (etor *HmtlExtractor) XPath(exp string) (result *htmlquery.Node, err error) {
 	n, err := etor.doc.Query(exp)
 	return (*htmlquery.Node)(n), err
 }
@@ -216,11 +217,31 @@ type methodtag struct {
 	Args   []reflect.Value
 }
 
+type ValueType int
+
+const (
+	_ ValueType = iota
+	Int
+	Int32
+	Int64
+
+	Uint
+	Uint32
+	Uint64
+
+	Float32
+	Float64
+
+	Str
+)
+
 type fieldtag struct {
-	Type  reflect.Type
-	Kind  reflect.Kind
-	Index int
-	Exp   string
+	Type   reflect.Type
+	Kind   reflect.Kind
+	VType  string
+	VIndex int
+	Index  int
+	Exp    string
 	// Method string
 	// Args   []reflect.Value
 	Methods []methodtag
@@ -300,10 +321,82 @@ func getFieldTags(obj interface{}) []*fieldtag {
 				ft.Methods = append(ft.Methods, mt)
 			}
 
+			ft.VType = ft.Type.Field(ft.Index).Type.String()
+			ft.VType = strings.ReplaceAll(ft.VType, "[]", "")
+
+			if index, ok := f.Tag.Lookup("index"); ok {
+				i, err := strconv.Atoi(index)
+				if err != nil {
+					log.Panic(err)
+				}
+				ft.VIndex = i
+			} else {
+				ft.VIndex = -1
+			}
+
 			fieldtags = append(fieldtags, ft)
 		}
 	}
 	return fieldtags
+}
+
+func autoStrToValueByType(ft *fieldtag, fvalue reflect.Value) reflect.Value {
+	switch ft.VType {
+	case "int":
+		v, err := strconv.ParseInt(fvalue.Interface().(string), 10, 64)
+		if err != nil {
+			log.Println(err)
+		}
+		return reflect.ValueOf(int(v))
+	case "int32":
+		v, err := strconv.ParseInt(fvalue.Interface().(string), 10, 64)
+		if err != nil {
+			log.Println(err)
+		}
+		return reflect.ValueOf(int32(v))
+	case "int64":
+		v, err := strconv.ParseInt(fvalue.Interface().(string), 10, 64)
+		if err != nil {
+			log.Println(err)
+		}
+		return reflect.ValueOf(v)
+
+	case "uint":
+		v, err := strconv.ParseUint(fvalue.Interface().(string), 10, 64)
+		if err != nil {
+			log.Println(err)
+		}
+		return reflect.ValueOf(uint(v))
+	case "uint32":
+		v, err := strconv.ParseUint(fvalue.Interface().(string), 10, 64)
+		if err != nil {
+			log.Println(err)
+		}
+		return reflect.ValueOf(uint32(v))
+	case "uint64":
+		v, err := strconv.ParseUint(fvalue.Interface().(string), 10, 64)
+		if err != nil {
+			log.Println(err)
+		}
+		return reflect.ValueOf(v)
+	case "float32":
+		v, err := strconv.ParseFloat(fvalue.Interface().(string), 64)
+		if err != nil {
+			log.Println(err)
+		}
+		return reflect.ValueOf(float32(v))
+	case "float64":
+		v, err := strconv.ParseFloat(fvalue.Interface().(string), 64)
+		if err != nil {
+			log.Println(err)
+		}
+		return reflect.ValueOf(v)
+	case "string":
+		return fvalue
+	default:
+		log.Panic("ValueType ", ft.VType, "is not exists")
+	}
+	return fvalue
 }
 
 func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflect.Value, isCreateObj bool) {
@@ -349,7 +442,7 @@ func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj refl
 				if isCreateObj {
 					fvalue := createobj.Field(ft.Index)
 					for _, callcallresult := range callresults {
-						fvalue = reflect.Append(fvalue, callcallresult[0])
+						fvalue = reflect.Append(fvalue, autoStrToValueByType(ft, callcallresult[0]))
 					}
 					createobj.Field(ft.Index).Set(fvalue)
 				}
@@ -357,24 +450,31 @@ func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj refl
 				// nobj.Elem().Field(ft.Index).Set(callresults[0])
 			} else {
 
+				var selResult *htmlquery.Node
+
+				if ft.VIndex != -1 {
+					selResult = result[ft.VIndex]
+				} else {
+					selResult = result[0]
+				}
+
 				//if iter.Next() {
-				for _, n := range result {
-					var isVaild = true
-					becall := reflect.ValueOf(n)
-					var callresult []reflect.Value
-					for _, method := range ft.Methods {
-						if !becall.IsNil() {
-							bymethod := becall.MethodByName(method.Method)
-							if bymethod.IsValid() {
-								callresult = bymethod.Call(method.Args)
-								becall = callresult[0]
-							} else {
-								log.Panicln(becall.Type(), becall, method.Method, "is not exists")
-							}
+
+				var isVaild = true
+				becall := reflect.ValueOf(selResult)
+				var callresult []reflect.Value
+				for _, method := range ft.Methods {
+					if !becall.IsNil() {
+						bymethod := becall.MethodByName(method.Method)
+						if bymethod.IsValid() {
+							callresult = bymethod.Call(method.Args)
+							becall = callresult[0]
 						} else {
-							isVaild = false
-							break
+							log.Panicln(becall.Type(), becall, method.Method, "is not exists")
 						}
+					} else {
+						isVaild = false
+						break
 					}
 
 					if isVaild {
@@ -382,7 +482,8 @@ func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj refl
 							isCreateObj = true
 							createobj = reflect.New(ft.Type).Elem()
 						}
-						createobj.Field(ft.Index).Set(callresult[0])
+						fvalue := callresult[0]
+						createobj.Field(ft.Index).Set(autoStrToValueByType(ft, fvalue))
 					}
 				}
 			}
