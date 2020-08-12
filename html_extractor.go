@@ -20,13 +20,13 @@ type HmtlExtractor struct {
 	doc *htmlquery.Node
 }
 
-// ExtractXmlString extractor xml(html)
-func ExtractXmlString(content string) *HmtlExtractor {
-	return ExtractXml([]byte(content))
+// ExtractHtmlString extractor xml(html)
+func ExtractHtmlString(content string) *HmtlExtractor {
+	return ExtractHtml([]byte(content))
 }
 
-// ExtractXml extractor xml(html)
-func ExtractXml(content []byte) *HmtlExtractor {
+// ExtractHtml extractor xml(html)
+func ExtractHtml(content []byte) *HmtlExtractor {
 	doc, err := htmlquery.Parse(bytes.NewReader(content))
 	if err != nil {
 		panic(err)
@@ -37,13 +37,13 @@ func ExtractXml(content []byte) *HmtlExtractor {
 	return e
 }
 
-// ExtractXmlReader extractor xml(html)
-func ExtractXmlReader(in io.Reader) *HmtlExtractor {
+// ExtractHtmlReader extractor xml(html)
+func ExtractHtmlReader(in io.Reader) *HmtlExtractor {
 	buf := &bytes.Buffer{}
 	if _, err := buf.ReadFrom(in); err != nil {
 		panic(errors.Wrap(err, "failed to rea from io.Reader"))
 	}
-	return ExtractXml(buf.Bytes())
+	return ExtractHtml(buf.Bytes())
 }
 
 // RegexpBytes multi xpath extractor

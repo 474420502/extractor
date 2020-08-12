@@ -13,13 +13,12 @@ func TestRegexp(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	etor := ExtractXmlReader(f)
+	etor := ExtractHtmlReader(f)
 	for _, matches := range etor.RegexpString(`use xlink:href[^>]+width=\"(\d+)\"[^>]+height=\"(\d+)\"`) {
 		if len(matches) != 3 {
 			t.Error("may error match")
 		}
 	}
-
 }
 
 func TestXPathMethod(t *testing.T) {
@@ -27,7 +26,7 @@ func TestXPathMethod(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	etor := ExtractXmlReader(f)
+	etor := ExtractHtmlReader(f)
 	xp, err := etor.XPaths("//li")
 	if err != nil {
 		t.Error(err)
@@ -56,7 +55,7 @@ func TestHtml(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	etor := ExtractXmlReader(f)
+	etor := ExtractHtmlReader(f)
 	xp, err := etor.XPaths("//*[contains(@class, 'c-header__modal__content__login')]")
 	if err != nil {
 		t.Error(err)
@@ -179,7 +178,7 @@ func TestTag(t *testing.T) {
 		t.Error(err)
 	}
 
-	etor := ExtractXmlReader(f)
+	etor := ExtractHtmlReader(f)
 	xp, err := etor.XPaths("//body")
 	results := xp.ForEachTag(toject{})
 
@@ -208,7 +207,7 @@ type tagObject3 struct {
 }
 
 func TestTag1(t *testing.T) {
-	etor := ExtractXmlString(`<html>
+	etor := ExtractHtmlString(`<html>
 		<head></head>
 		<body>
 			<div class="red">
@@ -266,7 +265,7 @@ type tagObject4 struct {
 }
 
 func TestType(t *testing.T) {
-	etor := ExtractXmlString(`<html>
+	etor := ExtractHtmlString(`<html>
 	<head></head>
 	<body>
 		<div class="red" num="123">
