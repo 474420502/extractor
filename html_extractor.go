@@ -217,24 +217,6 @@ type methodtag struct {
 	Args   []reflect.Value
 }
 
-type ValueType int
-
-const (
-	_ ValueType = iota
-	Int
-	Int32
-	Int64
-
-	Uint
-	Uint32
-	Uint64
-
-	Float32
-	Float64
-
-	Str
-)
-
 type fieldtag struct {
 	Type   reflect.Type
 	Kind   reflect.Kind
