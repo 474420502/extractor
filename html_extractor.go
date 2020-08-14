@@ -524,7 +524,7 @@ func autoStrToValueByType(ft *fieldtag, fvalue reflect.Value) reflect.Value {
 			if fvalue.Len() > 0 {
 				return autoValueType(ft.VType, fvalue.Index(sel).Interface())
 			}
-			return reflect.New(ft.Type).Elem()
+			return reflect.New(ft.Type.Field(ft.Index).Type).Elem()
 		}
 		return autoValueType(ft.VType, fvalue.Interface())
 	}
