@@ -4,7 +4,7 @@ go 1.14
 
 require (
 	github.com/474420502/htmlquery v1.2.4-0.20200812072201-e871dd09247a
-	github.com/474420502/requests v1.6.0
+	github.com/474420502/requests v1.7.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.6.1 // indirect
