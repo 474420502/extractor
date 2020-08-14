@@ -67,3 +67,37 @@ func TestFunc(t *testing.T) {
 		t.Error(fmt.Sprintf("%#v", o.Int64Ns))
 	}
 }
+
+type enumbertag struct {
+	Num  int   `exp:"//div[@num]/@num" mth:"r:ExtractNumber" index:"1" mindex:"1"`
+	Nums []int `exp:"//div[@num]/@num" mth:"r:ExtractNumber"`
+}
+
+func TestExtractNumber(t *testing.T) {
+	etor := ExtractHtmlString(`<html>
+	<head></head>
+	<body>
+		<div class="red" num="3.3k">
+			<a href="https://www.baidu.com"></a>
+		</div>
+		<div class="blue" num="hello 3,003k 20k">
+			<a href="https://www.google.com"></a>
+		</div>
+
+		<div class="black" num="sd 456"> 
+			<span>
+				good你好
+			</span>
+		</div>
+	</body>
+</html>`)
+
+	o := etor.GetObjectByTag(enumbertag{}).(*enumbertag)
+	if o.Num != 20000 {
+		t.Error(o.Num)
+	}
+
+	if fmt.Sprintf("%#v", o.Nums) != "[]int{3300, 3003000, 456}" {
+		t.Error(fmt.Sprintf("%#v", o.Nums))
+	}
+}
