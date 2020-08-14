@@ -6,15 +6,13 @@ import (
 	"strings"
 )
 
-// RegisterFunc 注册供tag调用的函数
-type RegisterFunc func(obj ...interface{}) []interface{}
-
 var register = make(map[string]reflect.Value)
 
 func init() {
 	Register("ParseNumber", ParseNumber)
 }
 
+// Register you can register custom function to tag
 func Register(name string, reg interface{}) {
 	register[name] = reflect.ValueOf(reg)
 }

@@ -180,7 +180,7 @@ func TestTag(t *testing.T) {
 
 	etor := ExtractHtmlReader(f)
 	xp, err := etor.XPaths("//body")
-	results := xp.ForEachTag(toject{})
+	results := xp.ForEachObjectByTag(toject{})
 
 	for _, r := range results {
 		if len(r.(*toject).Use) != 54 {
@@ -238,7 +238,7 @@ func TestTag1(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	} else {
-		tobj2 := xp.ForEachTag(tagObject2{})
+		tobj2 := xp.ForEachObjectByTag(tagObject2{})
 		if o := tobj2[0].(*tagObject2); o.Herf != "https://www.baidu.com" || o.Color != "red" {
 			t.Error(o)
 		}
@@ -253,7 +253,7 @@ func TestTag1(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	} else {
-		tag3 := xp.ForEachTag(tagObject3{})
+		tag3 := xp.ForEachObjectByTag(tagObject3{})
 		sr := spew.Sprint(tag3)
 		if sr != `[<*>{red } <*>{blue }]` {
 			t.Error(sr)
