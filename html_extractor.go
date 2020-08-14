@@ -611,8 +611,14 @@ func callMehtod(becall reflect.Value, method *methodtag) []reflect.Value {
 }
 
 func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflect.Value, isCreateObj bool) {
+	var ft *fieldtag
+	defer func() {
+		if err := recover(); err != nil {
+			log.Printf("err is %s, fieldtags is %#v", err, ft)
+		}
+	}()
 
-	for _, ft := range fieldtags {
+	for _, ft = range fieldtags {
 		result, err := node.QueryAll(ft.Exp)
 		if err == nil {
 			if ft.Kind == reflect.Slice {
