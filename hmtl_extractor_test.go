@@ -255,7 +255,7 @@ func TestTag1(t *testing.T) {
 	} else {
 		tag3 := xp.ForEachTag(tagObject3{})
 		sr := spew.Sprint(tag3)
-		if sr != `[<*>{<class>red</class> <a href="https://www.baidu.com"></a>} <*>{<class>blue</class> <a href="https://www.google.com"></a>}]` {
+		if sr != `[<*>{red } <*>{blue }]` {
 			t.Error(sr)
 		}
 	}

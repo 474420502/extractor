@@ -1,0 +1,69 @@
+package extractor
+
+import (
+	"fmt"
+	"testing"
+)
+
+type otag struct {
+	Num  float64   `exp:"//div[@num]/@num" mth:"r:ParseNumber"`
+	Nums []float64 `exp:"//div[@num]/@num" mth:"r:ParseNumber"`
+
+	IntN  int32   `exp:"//div[@num]/@num" mth:"r:ParseNumber"`
+	IntNs []int32 `exp:"//div[@num]/@num" mth:"r:ParseNumber"`
+
+	Int64N  int64   `exp:"(//div[@num])[2]/@num" mth:"r:ParseNumber"`
+	Int64Ns []int64 `exp:"//div[@num]/@num" mth:"r:ParseNumber"`
+
+	Uint64N  uint64   `exp:"(//div[@num])[2]/@num" mth:"r:ParseNumber"`
+	Uknt64Ns []uint64 `exp:"//div[@num]/@num" mth:"r:ParseNumber"`
+}
+
+func TestFunc(t *testing.T) {
+	etor := ExtractHtmlString(`<html>
+	<head></head>
+	<body>
+		<div class="red" num="123,123k">
+			<a href="https://www.baidu.com"></a>
+		</div>
+		<div class="blue" num="3,000">
+			<a href="https://www.google.com"></a>
+		</div>
+
+		<div class="black" num="456"> 
+			<span>
+				good你好
+			</span>
+		</div>
+	</body>
+</html>`)
+
+	o := etor.GetObjectByTag(otag{}).(*otag)
+	if o.Num != 123123000.0 {
+		t.Error(o)
+	}
+
+	if len(o.Nums) != 3 {
+		t.Error(o.Nums)
+	}
+
+	if fmt.Sprintf("%#v", o.Nums) != "[]float64{1.23123e+08, 3000, 456}" {
+		t.Error(fmt.Sprintf("%#v", o.Nums))
+	}
+
+	if o.IntN != 123123000 {
+		t.Error(o)
+	}
+
+	if fmt.Sprintf("%#v", o.IntNs) != "[]int32{123123000, 3000, 456}" {
+		t.Error(fmt.Sprintf("%#v", o.IntNs))
+	}
+
+	if o.Int64N != 3000 {
+		t.Error(o)
+	}
+
+	if fmt.Sprintf("%#v", o.Int64Ns) != "[]int64{123123000, 3000, 456}" {
+		t.Error(fmt.Sprintf("%#v", o.Int64Ns))
+	}
+}

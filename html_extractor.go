@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"reflect"
@@ -213,8 +214,9 @@ func (xp *XPath) GetTagNames() []string {
 // GetNodeStrings Get the String of the Current XPath Results
 
 type methodtag struct {
-	Method string
-	Args   []reflect.Value
+	IsRegister bool
+	Method     string
+	Args       []reflect.Value
 }
 
 type fieldtag struct {
@@ -229,7 +231,7 @@ type fieldtag struct {
 	Methods []methodtag
 }
 
-var DefaultMethod = "String"
+var DefaultMethod = "Text"
 
 var methodDict map[string]string
 
@@ -278,6 +280,20 @@ func getFieldTags(obj interface{}) []*fieldtag {
 						methodAndArgs := strings.Split(method, ",")
 						mt := methodtag{}
 						mt.Method = methodAndArgs[0]
+
+						mtsp := strings.Split(mt.Method, ":")
+						if len(mtsp) == 2 {
+							switch mtsp[0] {
+							case "r":
+								fallthrough
+							case "R":
+								mt.IsRegister = true
+								mt.Method = mtsp[1]
+							default:
+								panic(fmt.Errorf("flag %s is not exists", mtsp[0]))
+							}
+						}
+
 						if v, ok := methodDict[mt.Method]; ok {
 							mt.Method = v
 						}
@@ -322,7 +338,199 @@ func getFieldTags(obj interface{}) []*fieldtag {
 	return fieldtags
 }
 
+func autoValueType(vtype string, v interface{}) reflect.Value {
+	switch vtype {
+	case "int":
+
+		switch rv := v.(type) {
+		case int:
+			return reflect.ValueOf(rv)
+		case int32:
+			return reflect.ValueOf(int(rv))
+		case int64:
+			return reflect.ValueOf(int(rv))
+		case uint:
+			return reflect.ValueOf(int(rv))
+		case uint32:
+			return reflect.ValueOf(int(rv))
+		case uint64:
+			return reflect.ValueOf(int(rv))
+		case float32:
+			return reflect.ValueOf(int(rv))
+		case float64:
+			return reflect.ValueOf(int(rv))
+		default:
+			panic(fmt.Errorf("%s, %s", rv, v))
+		}
+
+	case "int32":
+
+		switch rv := v.(type) {
+		case int:
+			return reflect.ValueOf(int32(rv))
+		case int32:
+			return reflect.ValueOf(rv)
+		case int64:
+			return reflect.ValueOf(int32(rv))
+		case uint:
+			return reflect.ValueOf(int32(rv))
+		case uint32:
+			return reflect.ValueOf(int32(rv))
+		case uint64:
+			return reflect.ValueOf(int32(rv))
+		case float32:
+			return reflect.ValueOf(int32(rv))
+		case float64:
+			return reflect.ValueOf(int32(rv))
+		default:
+			panic(fmt.Errorf("%s, %s", rv, v))
+		}
+
+	case "int64":
+
+		switch rv := v.(type) {
+		case int:
+			return reflect.ValueOf(int64(rv))
+		case int32:
+			return reflect.ValueOf(int64(rv))
+		case int64:
+			return reflect.ValueOf(rv)
+		case uint:
+			return reflect.ValueOf(int64(rv))
+		case uint32:
+			return reflect.ValueOf(int64(rv))
+		case uint64:
+			return reflect.ValueOf(int64(rv))
+		case float32:
+			return reflect.ValueOf(int64(rv))
+		case float64:
+			return reflect.ValueOf(int64(rv))
+		default:
+			panic(fmt.Errorf("%s, %s", rv, v))
+		}
+
+	case "uint":
+
+		switch rv := v.(type) {
+		case int:
+			return reflect.ValueOf(uint(rv))
+		case int32:
+			return reflect.ValueOf(uint(rv))
+		case int64:
+			return reflect.ValueOf(uint(rv))
+		case uint:
+			return reflect.ValueOf(rv)
+		case uint32:
+			return reflect.ValueOf(uint(rv))
+		case uint64:
+			return reflect.ValueOf(uint(rv))
+		case float32:
+			return reflect.ValueOf(uint(rv))
+		case float64:
+			return reflect.ValueOf(uint(rv))
+		default:
+			panic(fmt.Errorf("%s, %s", rv, v))
+		}
+
+	case "uint32":
+
+		switch rv := v.(type) {
+		case int:
+			return reflect.ValueOf(uint32(rv))
+		case int32:
+			return reflect.ValueOf(uint32(rv))
+		case int64:
+			return reflect.ValueOf(uint32(rv))
+		case uint:
+			return reflect.ValueOf(uint32(rv))
+		case uint32:
+			return reflect.ValueOf(rv)
+		case uint64:
+			return reflect.ValueOf(uint32(rv))
+		case float32:
+			return reflect.ValueOf(uint32(rv))
+		case float64:
+			return reflect.ValueOf(uint32(rv))
+		default:
+			panic(fmt.Errorf("%s, %s", rv, v))
+		}
+
+	case "uint64":
+		switch rv := v.(type) {
+		case int:
+			return reflect.ValueOf(uint64(rv))
+		case int32:
+			return reflect.ValueOf(uint64(rv))
+		case int64:
+			return reflect.ValueOf(uint64(rv))
+		case uint:
+			return reflect.ValueOf(uint64(rv))
+		case uint32:
+			return reflect.ValueOf(uint64(rv))
+		case uint64:
+			return reflect.ValueOf(rv)
+		case float32:
+			return reflect.ValueOf(uint64(rv))
+		case float64:
+			return reflect.ValueOf(uint64(rv))
+		default:
+			panic(fmt.Errorf("%s, %s", rv, v))
+		}
+	case "float32":
+		switch rv := v.(type) {
+		case int:
+			return reflect.ValueOf(float32(rv))
+		case int32:
+			return reflect.ValueOf(float32(rv))
+		case int64:
+			return reflect.ValueOf(float32(rv))
+		case uint:
+			return reflect.ValueOf(float32(rv))
+		case uint32:
+			return reflect.ValueOf(float32(rv))
+		case uint64:
+			return reflect.ValueOf(float32(rv))
+		case float32:
+			return reflect.ValueOf(rv)
+		case float64:
+			return reflect.ValueOf(float32(rv))
+		default:
+			panic(fmt.Errorf("%s, %s", rv, v))
+		}
+	case "float64":
+		switch rv := v.(type) {
+		case int:
+			return reflect.ValueOf(float64(rv))
+		case int32:
+			return reflect.ValueOf(float64(rv))
+		case int64:
+			return reflect.ValueOf(float64(rv))
+		case uint:
+			return reflect.ValueOf(float64(rv))
+		case uint32:
+			return reflect.ValueOf(float64(rv))
+		case uint64:
+			return reflect.ValueOf(float64(rv))
+		case float32:
+			return reflect.ValueOf(float64(rv))
+		case float64:
+			return reflect.ValueOf(rv)
+		default:
+			panic(fmt.Errorf("%s, %s", rv, v))
+		}
+	case "string":
+		panic("type is string")
+	default:
+		panic(fmt.Errorf("ValueType %s is not exists", vtype))
+	}
+}
+
 func autoStrToValueByType(ft *fieldtag, fvalue reflect.Value) reflect.Value {
+
+	if fvalue.Kind() != reflect.String {
+		return autoValueType(ft.VType, fvalue.Interface())
+	}
+
 	switch ft.VType {
 	case "int":
 		v, err := strconv.ParseInt(fvalue.Interface().(string), 10, 64)
@@ -381,6 +589,29 @@ func autoStrToValueByType(ft *fieldtag, fvalue reflect.Value) reflect.Value {
 	return fvalue
 }
 
+func callMehtod(becall reflect.Value, method *methodtag) []reflect.Value {
+	var callresult []reflect.Value
+	if method.IsRegister { // call register function
+		if becall.Kind() != reflect.String {
+			becall = becall.MethodByName(DefaultMethod).Call(nil)[0] // call String()
+		}
+		callresult = []reflect.Value{becall}
+		callresult = append(callresult, method.Args...)
+		// var retcallresult []reflect.Value
+		return register[method.Method].Call(callresult)
+	}
+
+	// call becall default method
+	bymethod := becall.MethodByName(method.Method)
+	if bymethod.IsValid() {
+		callresult = bymethod.Call(method.Args)
+		return callresult
+	}
+
+	log.Panicln(method.Method, "is not exists")
+	return nil
+}
+
 func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflect.Value, isCreateObj bool) {
 
 	for _, ft := range fieldtags {
@@ -399,13 +630,8 @@ func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj refl
 					var callresult []reflect.Value
 					for _, method := range ft.Methods {
 						if !becall.IsNil() {
-							bymethod := becall.MethodByName(method.Method)
-							if bymethod.IsValid() {
-								callresult = bymethod.Call(method.Args)
-								becall = callresult[0]
-							} else {
-								log.Panicln(method.Method, "is not exists")
-							}
+							callresult = callMehtod(becall, &method)
+							becall = callresult[0]
 						} else {
 							isVaild = false
 							break
@@ -429,7 +655,6 @@ func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj refl
 					createobj.Field(ft.Index).Set(fvalue)
 				}
 
-				// nobj.Elem().Field(ft.Index).Set(callresults[0])
 			} else {
 
 				var selResult *htmlquery.Node
@@ -440,20 +665,13 @@ func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj refl
 					selResult = result[0]
 				}
 
-				//if iter.Next() {
-
 				var isVaild = true
 				becall := reflect.ValueOf(selResult)
 				var callresult []reflect.Value
 				for _, method := range ft.Methods {
 					if !becall.IsNil() {
-						bymethod := becall.MethodByName(method.Method)
-						if bymethod.IsValid() {
-							callresult = bymethod.Call(method.Args)
-							becall = callresult[0]
-						} else {
-							log.Panicln(becall.Type(), becall, method.Method, "is not exists")
-						}
+						callresult = callMehtod(becall, &method)
+						becall = callresult[0]
 					} else {
 						isVaild = false
 						break
