@@ -59,7 +59,7 @@ func (etor *HmtlExtractor) RegexpString(exp string) [][]string {
 
 // GetObjectByTag single xpath extractor
 func (etor *HmtlExtractor) GetObjectByTag(obj interface{}) interface{} {
-	if nobj, ok := getResultByTag(etor.doc, getFieldTags(obj)); ok {
+	if nobj, ok := getInfoByTag(etor.doc, getFieldTags(obj)); ok {
 		return nobj.Addr().Interface()
 	}
 	return nil
@@ -191,26 +191,6 @@ func (xp *XPath) GetTagNames() []string {
 	return nvalues
 }
 
-// GetNodeNames Get the NodeName of the Current XPath Results
-// func (xp *XPath) GetNodeNames() []string {
-// 	if len(xp.results) == 0 {
-// 		return nil
-// 	}
-
-// 	var nvalues []string
-// 	for _, xpresult := range xp.results {
-// 		iter := xpresult.NodeIter()
-// 		for iter.Next() {
-// 			ele := iter.Node().(types.Element)
-// 			if ele != nil {
-// 				nvalues = append(nvalues, ele.NodeName())
-// 			}
-// 		}
-// 	}
-
-// 	return nvalues
-// }
-
 // GetNodeStrings Get the String of the Current XPath Results
 
 type methodtag struct {
@@ -231,6 +211,7 @@ type fieldtag struct {
 	Methods []methodtag
 }
 
+// DefaultMethod 默认函数 如果tag没写mth(method) 的标识. 默认就是call Text()
 var DefaultMethod = "Text"
 
 var methodDict map[string]string
@@ -240,12 +221,8 @@ type nodeMethod string
 const (
 
 	// GetAttribute Node.GetAttribute()
-	GetAttribute nodeMethod = "GetAttribute"
-	// NodeName Node.NodeName()
-	NodeName nodeMethod = "TagName"
-	// // NodeValue Node.NodeValue()
-	// NodeValue nodeMethod = "NodeValue"
-	// ParentNode Node.NodeValue()
+	GetAttribute   nodeMethod = "GetAttribute"
+	NodeName       nodeMethod = "TagName"
 	ParentNode     nodeMethod = "ParentNode"
 	AttributeValue nodeMethod = "AttributeValue"
 	Text           nodeMethod = "Text"
@@ -612,18 +589,13 @@ func callMehtod(becall reflect.Value, method *methodtag) []reflect.Value {
 	return nil
 }
 
-func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflect.Value, isCreateObj bool) {
+func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflect.Value, isCreateObj bool) {
 
 	for _, ft := range fieldtags {
 		result, err := node.QueryAll(ft.Exp)
-		// var inodes []types.Node
 		if err == nil {
-
-			// iter := result.NodeIter()
 			if ft.Kind == reflect.Slice {
-
 				var callresults [][]reflect.Value
-				// for iter.Next() {
 				for _, n := range result {
 					becall := reflect.ValueOf(n)
 					var isVaild = true
@@ -693,12 +665,12 @@ func getResultByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj refl
 	return
 }
 
-// ForEachTag after executing xpath, get the String of all result
-func (xp *XPath) ForEachTag(obj interface{}) []interface{} {
+// ForEachObjectByTag after executing xpath, get the String of all result
+func (xp *XPath) ForEachObjectByTag(obj interface{}) []interface{} {
 	var results []interface{}
 	fieldtags := getFieldTags(obj)
 	for _, xpresult := range xp.results {
-		if nobj, isCreateObj := getResultByTag(xpresult, fieldtags); isCreateObj {
+		if nobj, isCreateObj := getInfoByTag(xpresult, fieldtags); isCreateObj {
 			results = append(results, nobj.Addr().Interface())
 		}
 
@@ -751,40 +723,6 @@ func (xp *XPath) ForEachText(exp string) (texts []string, errorlist []error) {
 
 	return texts, errlist
 }
-
-// ForEachType after executing xpath, get the XMLNodeType of all result
-// func (xp *XPath) ForEachType(exp string) (typelist []clib.XMLNodeType, errorlist []error) {
-
-// 	inames, errlist := xp.ForEachEx(exp, func(node types.Node) interface{} {
-// 		return node.NodeType()
-// 	})
-
-// 	for _, i := range inames {
-// 		typelist = append(typelist, i.(clib.XMLNodeType))
-// 	}
-
-// 	return typelist, errlist
-// }
-
-// ForEachValue after executing xpath, get the NodeValue of all result
-// func (xp *XPath) ForEachValue(exp string) (values []string, errorlist []error) {
-
-// 	inames, errlist := xp.ForEachEx(exp, func(node *htmlquery.Node) interface{} {
-// 		switch node.Type {
-// 		case html.TextNode:
-// 			return node.Data
-// 		case html.ElementNode:
-// 			return node.
-// 		}
-// 		return node.
-// 	})
-
-// 	for _, i := range inames {
-// 		values = append(values, i.(string))
-// 	}
-
-// 	return values, errlist
-// }
 
 // ForEachAttr after executing xpath, get the Attributes of all result
 func (xp *XPath) ForEachAttr(exp string) (attributes []*htmlquery.Attribute, errorlist []error) {
@@ -848,20 +786,6 @@ func (xp *XPath) ForEachAttrValue(exp string, attributes ...string) (values []st
 
 	return values, errlist
 }
-
-// ForEachName after executing xpath, get the NodeName of all result
-// func (xp *XPath) ForEachName(exp string) (names []string, errorlist []error) {
-
-// 	inames, errlist := xp.ForEachEx(exp, func(node *htmlquery.Node) interface{} {
-// 		return node.NodeName()
-// 	})
-
-// 	for _, i := range inames {
-// 		names = append(names, i.(string))
-// 	}
-
-// 	return names, errlist
-// }
 
 // ForEachEx foreach after executing xpath do funciton. note: duplicate
 func (xp *XPath) ForEachEx(exp string, do func(*htmlquery.Node) interface{}) (values []interface{}, errorlist []error) {
