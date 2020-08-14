@@ -203,7 +203,8 @@ type fieldtag struct {
 	Type   reflect.Type
 	Kind   reflect.Kind
 	VType  string
-	VIndex int
+	VIndex int // exp results selected index
+	MIndex int // method results selected index
 	Index  int
 	Exp    string
 	// Method string
@@ -307,6 +308,16 @@ func getFieldTags(obj interface{}) []*fieldtag {
 				ft.VIndex = i
 			} else {
 				ft.VIndex = -1
+			}
+
+			if index, ok := f.Tag.Lookup("mindex"); ok {
+				i, err := strconv.Atoi(index)
+				if err != nil {
+					log.Panic(err)
+				}
+				ft.MIndex = i
+			} else {
+				ft.MIndex = -1
 			}
 
 			fieldtags = append(fieldtags, ft)
@@ -503,8 +514,15 @@ func autoValueType(vtype string, v interface{}) reflect.Value {
 }
 
 func autoStrToValueByType(ft *fieldtag, fvalue reflect.Value) reflect.Value {
-
+	//log.Println(fvalue.Kind(), reflect.String)
 	if fvalue.Kind() != reflect.String {
+		if fvalue.Kind() == reflect.Slice {
+			var sel = 0
+			if ft.MIndex != -1 {
+				sel = ft.MIndex
+			}
+			return autoValueType(ft.VType, fvalue.Index(sel).Interface())
+		}
 		return autoValueType(ft.VType, fvalue.Interface())
 	}
 
@@ -621,8 +639,8 @@ func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflec
 
 				if isCreateObj {
 					fvalue := createobj.Field(ft.Index)
-					for _, callcallresult := range callresults {
-						fvalue = reflect.Append(fvalue, autoStrToValueByType(ft, callcallresult[0]))
+					for _, callresult := range callresults {
+						fvalue = reflect.Append(fvalue, autoStrToValueByType(ft, callresult[0]))
 					}
 					createobj.Field(ft.Index).Set(fvalue)
 				}
