@@ -621,7 +621,7 @@ func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflec
 	for _, ft = range fieldtags {
 		result, err := node.QueryAll(ft.Exp)
 		if err == nil {
-			if ft.Kind == reflect.Slice {
+			if ft.Kind == reflect.Slice { // 如果是Slice 就返回Slice
 				var callresults [][]reflect.Value
 				for _, n := range result {
 					becall := reflect.ValueOf(n)
@@ -656,33 +656,34 @@ func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflec
 
 			} else {
 
-				var selResult *htmlquery.Node
-
-				if ft.VIndex != -1 {
-					selResult = result[ft.VIndex]
-				} else {
-					selResult = result[0]
-				}
-
-				var isVaild = true
-				becall := reflect.ValueOf(selResult)
-				var callresult []reflect.Value
-				for _, method := range ft.Methods {
-					if !becall.IsNil() {
-						callresult = callMehtod(becall, &method)
-						becall = callresult[0]
+				if len(result) > 0 {
+					var selResult *htmlquery.Node
+					if ft.VIndex != -1 {
+						selResult = result[ft.VIndex]
 					} else {
-						isVaild = false
-						break
+						selResult = result[0]
 					}
 
-					if isVaild {
-						if !isCreateObj {
-							isCreateObj = true
-							createobj = reflect.New(ft.Type).Elem()
+					var isVaild = true
+					becall := reflect.ValueOf(selResult)
+					var callresult []reflect.Value
+					for _, method := range ft.Methods {
+						if !becall.IsNil() {
+							callresult = callMehtod(becall, &method)
+							becall = callresult[0]
+						} else {
+							isVaild = false
+							break
 						}
-						fvalue := callresult[0]
-						createobj.Field(ft.Index).Set(autoStrToValueByType(ft, fvalue))
+
+						if isVaild {
+							if !isCreateObj {
+								isCreateObj = true
+								createobj = reflect.New(ft.Type).Elem()
+							}
+							fvalue := callresult[0]
+							createobj.Field(ft.Index).Set(autoStrToValueByType(ft, fvalue))
+						}
 					}
 				}
 			}
