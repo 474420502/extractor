@@ -12,7 +12,7 @@ import (
 var register = make(map[string]reflect.Value)
 
 func init() {
-	Register("ParseNumber", ParseNumber)
+	Register("ParseNumber", ParseNumber) // 自定义函数
 	Register("ExtractNumber", ExtractNumber)
 }
 
@@ -21,7 +21,7 @@ func Register(name string, reg interface{}) {
 	register[name] = reflect.ValueOf(reg)
 }
 
-// ExtractNumber 通过正则获取数字, 然后解析
+// ExtractNumber 通过正则获取数字, 然后解析ParseNumber
 func ExtractNumber(num string) ([]float64, error) {
 	var ret []float64
 	for _, e := range regexp.MustCompile(`[\d,kKmM\.]+`).FindAllString(num, -1) {

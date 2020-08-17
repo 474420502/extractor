@@ -77,11 +77,14 @@ func (etor *HmtlExtractor) XPath(exp string) (result *htmlquery.Node, err error)
 	return (*htmlquery.Node)(n), err
 }
 
+// ErrorFlags  忽略错误标志位, 暂时不用
 type ErrorFlags int
 
 const (
-	ERROR_BREAK ErrorFlags = 0
-	ERROR_SKIP  ErrorFlags = 1
+	// ErrorBreak 遇到错误, 终止执行
+	ErrorBreak ErrorFlags = 0
+	// ErrorSkip 遇到错误, 忽略继续执行
+	ErrorSkip ErrorFlags = 1
 )
 
 // XPath for easy extractor data
@@ -91,7 +94,7 @@ type XPath struct {
 }
 
 func newXPath(result ...*htmlquery.Node) *XPath {
-	xp := &XPath{results: result, errorFlags: ERROR_SKIP}
+	xp := &XPath{results: result, errorFlags: ErrorSkip}
 	return xp
 }
 
@@ -194,22 +197,22 @@ func (xp *XPath) GetTagNames() []string {
 // GetNodeStrings Get the String of the Current XPath Results
 
 type methodtag struct {
-	IsRegister bool
-	Method     string
-	Args       []reflect.Value
+	IsRegister bool            // is register 是否为注册函数
+	Method     string          // method name 方法名
+	Args       []reflect.Value // Args 参数
 }
 
 type fieldtag struct {
-	Type   reflect.Type
-	Kind   reflect.Kind
-	VType  string
-	VIndex int // exp results selected index
-	MIndex int // method results selected index
-	Index  int
-	Exp    string
+	Type   reflect.Type // 参考reflect
+	Kind   reflect.Kind // 参考reflect
+	VType  string       // Type的字符串形式 eg: String Int64 time.Time...
+	VIndex int          // exp results selected index
+	MIndex int          // method results selected index
+	Index  int          // index
+	Exp    string       // expression 表达式
 	// Method string
 	// Args   []reflect.Value
-	Methods []methodtag
+	Methods []methodtag // multi method 多个方法
 }
 
 // DefaultMethod 默认函数 如果tag没写mth(method) 的标识. 默认就是call Text()
@@ -217,6 +220,7 @@ var DefaultMethod = "Text"
 
 var methodDict map[string]string
 
+// 方法映射 动态调用过程能映射自定义方法
 type nodeMethod string
 
 const (
@@ -237,12 +241,14 @@ func init() {
 	methodDict["Name"] = string(NodeName)
 }
 
+// 获取成员变量的tag信息.
 func getFieldTags(obj interface{}) []*fieldtag {
 	otype := reflect.TypeOf(obj)
 	var fieldtags []*fieldtag
 	for i := 0; i < otype.NumField(); i++ {
 
 		f := otype.Field(i)
+		// 获取表达式 TODO: 转义之类的支持 正则之类的支持. json之类的支持 ...
 		if exp, ok := f.Tag.Lookup("exp"); ok {
 			ft := &fieldtag{}
 			ft.Index = i
@@ -252,6 +258,8 @@ func getFieldTags(obj interface{}) []*fieldtag {
 
 			var smethod string
 			var ok bool
+
+			// 获取函数信息 method == mth
 			for _, mth := range []string{"method", "mth"} {
 				if smethod, ok = f.Tag.Lookup(mth); ok {
 					for _, method := range strings.Split(smethod, " ") {
@@ -259,6 +267,7 @@ func getFieldTags(obj interface{}) []*fieldtag {
 						mt := methodtag{}
 						mt.Method = methodAndArgs[0]
 
+						// 注册函数的前置标志判断
 						mtsp := strings.Split(mt.Method, ":")
 						if len(mtsp) == 2 {
 							switch mtsp[0] {
@@ -299,7 +308,7 @@ func getFieldTags(obj interface{}) []*fieldtag {
 
 			ft.VType = ft.Type.Field(ft.Index).Type.String()
 			ft.VType = strings.ReplaceAll(ft.VType, "[]", "")
-
+			// 获取index
 			if index, ok := f.Tag.Lookup("index"); ok {
 				i, err := strconv.Atoi(index)
 				if err != nil {
@@ -309,7 +318,7 @@ func getFieldTags(obj interface{}) []*fieldtag {
 			} else {
 				ft.VIndex = -1
 			}
-
+			// 获取mindex
 			if index, ok := f.Tag.Lookup("mindex"); ok {
 				i, err := strconv.Atoi(index)
 				if err != nil {
@@ -831,7 +840,7 @@ func (xp *XPath) ForEachEx(exp string, do func(*htmlquery.Node) interface{}) (va
 		}
 
 		if err != nil {
-			if xp.errorFlags == ERROR_SKIP {
+			if xp.errorFlags == ErrorSkip {
 				errorlist = append(errorlist, err)
 			} else {
 				break
@@ -864,7 +873,7 @@ func (xp *XPath) ForEach(exp string) (newxpath *XPath, errorlist []error) {
 	for _, xpresult := range xp.results {
 		result, err := xpresult.QueryAll(exp)
 		if err != nil {
-			if xp.errorFlags == ERROR_SKIP {
+			if xp.errorFlags == ErrorSkip {
 				errorlist = append(errorlist, err)
 			} else {
 				break
