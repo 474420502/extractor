@@ -1,6 +1,6 @@
 module github.com/474420502/extractor
 
-go 1.14
+go 1.15
 
 require (
 	github.com/474420502/htmlquery v1.2.4-0.20200812072201-e871dd09247a
