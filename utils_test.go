@@ -2,6 +2,8 @@ package extractor
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -99,5 +101,65 @@ func TestExtractNumber(t *testing.T) {
 
 	if fmt.Sprintf("%#v", o.Nums) != "[]int{3300, 3003000, 456}" {
 		t.Error(fmt.Sprintf("%#v", o.Nums))
+	}
+}
+
+type LiveData struct {
+	UserName     string   `exp:"//span[@class='tw-live-author__info-username']" method:"Text"`
+	Follower     int64    `exp:"(//span[@class='tw-user-nav-list-count'])[2]" method:"r:ExtractNumber"`
+	MaxViews     int64    `exp:"//span[@id='max_viewer_count']" method:"r:ExtractNumber"`
+	LiveTitle    string   `exp:"//meta[@property='og:title']" method:"AttributeValue,content"`
+	LiveStart    string   `exp:"//time[@data-kind='relative']" method:"AttributeValue,datetime"`
+	LiveDuration string   `exp:"//span[@id='updatetimer']" method:"AttributeValue,data-duration"`
+	Tags         []string `exp:"//div[@class='tw-live-author__commandbox--tags']//a[@class='tag  tag-info']" method:"Text"`
+}
+
+func TestExtractNumber2(t *testing.T) {
+	f, err := os.Open("./testfile/twistcasting.html")
+	if err != nil {
+		t.Error(err)
+	}
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Error(err)
+	}
+	etor := ExtractHtml(data)
+	ld := etor.GetObjectByTag(LiveData{}).(*LiveData)
+	if ld.Follower != 7 {
+		t.Error(ld)
+	}
+
+	if ld.MaxViews != 3 {
+		t.Error(ld)
+	}
+}
+
+type LiveDataError struct {
+	UserName string `exp:"//span[@class='tw-live-author__info-username']" method:"Text"`
+	Follower int64  `exp:"(//span[@class='tw-user-nav-list-count'])[2]" method:"r:ExtractNumbr"`
+	MaxViews int64  `exp:"//span[@id='max_viewer_count']" method:"r:ExtractNumber"`
+}
+
+func TestExtractNumber3(t *testing.T) {
+	f, err := os.Open("./testfile/twistcasting.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Error(err)
+	}
+
+	defer func() {
+		if err := recover(); err == nil {
+			t.Error("err is nil")
+		}
+	}()
+
+	etor := ExtractHtml(data)
+	ld := etor.GetObjectByTag(LiveDataError{}).(*LiveDataError)
+	if ld.Follower != 0 {
+		t.Error(ld)
 	}
 }
