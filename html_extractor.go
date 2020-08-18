@@ -609,7 +609,19 @@ func callMehtod(becall reflect.Value, method *methodtag) []reflect.Value {
 		if mcall, ok := register[method.Method]; ok {
 			return mcall.Call(callresult)
 		}
-		log.Panicf("method name %s is not exists. please check it", method.Method)
+
+		// 提示相似的函数. 防止写错自定义函数名字
+		var maxpercent float64 = 0
+		var curmehtod string
+		for key := range register {
+			percent := SimilarText(method.Method, key)
+			if percent > maxpercent {
+				maxpercent = percent
+				curmehtod = key
+			}
+		}
+
+		panic(fmt.Errorf("Method name %s is not exists. please check it.\nMethod may be %s. the sim is %f", method.Method, curmehtod, maxpercent))
 	}
 
 	// call becall default method
@@ -627,7 +639,7 @@ func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflec
 	var ft *fieldtag
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("err is %s, fieldtags is %#v", err, ft)
+			log.Panicf("err is %s\n fieldtags is %#v", err, ft)
 		}
 	}()
 

@@ -106,8 +106,8 @@ func TestExtractNumber(t *testing.T) {
 
 type LiveData struct {
 	UserName     string   `exp:"//span[@class='tw-live-author__info-username']" method:"Text"`
-	Follower     int64    `exp:"(//span[@class='tw-user-nav-list-count']/text())[2]" method:"r:ExtractNumer"`
-	MaxViews     int64    `exp:"//span[@id='max_viewer_count']/text()" method:"r:ExtractNumer"`
+	Follower     int64    `exp:"(//span[@class='tw-user-nav-list-count'])[2]" method:"r:ExtractNumber"`
+	MaxViews     int64    `exp:"//span[@id='max_viewer_count']" method:"r:ExtractNumber"`
 	LiveTitle    string   `exp:"//meta[@property='og:title']" method:"AttributeValue,content"`
 	LiveStart    string   `exp:"//time[@data-kind='relative']" method:"AttributeValue,datetime"`
 	LiveDuration string   `exp:"//span[@id='updatetimer']" method:"AttributeValue,data-duration"`
@@ -125,5 +125,41 @@ func TestExtractNumber2(t *testing.T) {
 	}
 	etor := ExtractHtml(data)
 	ld := etor.GetObjectByTag(LiveData{}).(*LiveData)
-	t.Error(ld)
+	if ld.Follower != 7 {
+		t.Error(ld)
+	}
+
+	if ld.MaxViews != 3 {
+		t.Error(ld)
+	}
+}
+
+type LiveDataError struct {
+	UserName string `exp:"//span[@class='tw-live-author__info-username']" method:"Text"`
+	Follower int64  `exp:"(//span[@class='tw-user-nav-list-count'])[2]" method:"r:ExtractNumbr"`
+	MaxViews int64  `exp:"//span[@id='max_viewer_count']" method:"r:ExtractNumber"`
+}
+
+func TestExtractNumber3(t *testing.T) {
+	f, err := os.Open("./testfile/twistcasting.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Error(err)
+	}
+
+	defer func() {
+		if err := recover(); err == nil {
+			t.Error("err is nil")
+		}
+	}()
+
+	etor := ExtractHtml(data)
+	ld := etor.GetObjectByTag(LiveDataError{}).(*LiveDataError)
+	if ld.Follower != 0 {
+		t.Error(ld)
+	}
 }
