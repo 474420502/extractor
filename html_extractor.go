@@ -702,7 +702,7 @@ func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflec
 	return
 }
 
-// ForEachObjectByTag after executing xpath, get the String of all result
+// ForEachObjectByTag after every result executing xpath, get the String of all result
 func (xp *XPath) ForEachObjectByTag(obj interface{}) []interface{} {
 	var results []interface{}
 	fieldtags := getFieldTags(obj)
@@ -716,7 +716,7 @@ func (xp *XPath) ForEachObjectByTag(obj interface{}) []interface{} {
 	return results
 }
 
-// ForEachTagName after executing xpath, get the String of all result
+// ForEachTagName after every result executing xpath, get the String of all result
 func (xp *XPath) ForEachTagName(exp string) (sstr []string, errorlist []error) {
 
 	inames, errlist := xp.ForEachEx(exp, func(node *htmlquery.Node) interface{} {
@@ -733,7 +733,7 @@ func (xp *XPath) ForEachTagName(exp string) (sstr []string, errorlist []error) {
 	return sstr, errlist
 }
 
-// ForEachString after executing xpath, get the String of all result
+// ForEachString after every result executing xpath, get the String of all result
 func (xp *XPath) ForEachString(exp string) (sstr []string, errorlist []error) {
 
 	inames, errlist := xp.ForEachEx(exp, func(node *htmlquery.Node) interface{} {
@@ -747,7 +747,7 @@ func (xp *XPath) ForEachString(exp string) (sstr []string, errorlist []error) {
 	return sstr, errlist
 }
 
-// ForEachText after executing xpath, get the TextContent of all result
+// ForEachText after every result executing xpath, get the TextContent of all result
 func (xp *XPath) ForEachText(exp string) (texts []string, errorlist []error) {
 
 	inames, errlist := xp.ForEachEx(exp, func(node *htmlquery.Node) interface{} {
@@ -761,7 +761,7 @@ func (xp *XPath) ForEachText(exp string) (texts []string, errorlist []error) {
 	return texts, errlist
 }
 
-// ForEachAttr after executing xpath, get the Attributes of all result
+// ForEachAttr after every result executing xpath, get the Attributes of all result
 func (xp *XPath) ForEachAttr(exp string) (attributes []*htmlquery.Attribute, errorlist []error) {
 
 	inames, errlist := xp.ForEachEx(exp, func(node *htmlquery.Node) interface{} {
@@ -777,7 +777,7 @@ func (xp *XPath) ForEachAttr(exp string) (attributes []*htmlquery.Attribute, err
 	return attributes, errlist
 }
 
-// ForEachAttrKeys after executing xpath, get the Attribute Key of all result
+// ForEachAttrKeys after every result executing xpath, get the Attribute Key of all result
 func (xp *XPath) ForEachAttrKeys(exp string) (keyslist []string, errorlist []error) {
 
 	inames, errlist := xp.ForEachEx(exp, func(node *htmlquery.Node) interface{} {
@@ -799,7 +799,7 @@ func (xp *XPath) ForEachAttrKeys(exp string) (keyslist []string, errorlist []err
 	return keyslist, errlist
 }
 
-// ForEachAttrValue after executing xpath, get the Attribute Value of all result
+// ForEachAttrValue after every result executing xpath, get the Attribute Value of all result
 func (xp *XPath) ForEachAttrValue(exp string, attributes ...string) (values []string, errorlist []error) {
 
 	inames, errlist := xp.ForEachEx(exp, func(node *htmlquery.Node) interface{} {
@@ -824,7 +824,7 @@ func (xp *XPath) ForEachAttrValue(exp string, attributes ...string) (values []st
 	return values, errlist
 }
 
-// ForEachEx foreach after executing xpath do funciton. note: duplicate
+// ForEachEx foreach after every result executing xpath do funciton. note: duplicate
 func (xp *XPath) ForEachEx(exp string, do func(*htmlquery.Node) interface{}) (values []interface{}, errorlist []error) {
 	if len(xp.results) == 0 {
 		return
