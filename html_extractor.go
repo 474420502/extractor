@@ -605,7 +605,11 @@ func callMehtod(becall reflect.Value, method *methodtag) []reflect.Value {
 		callresult = []reflect.Value{becall}
 		callresult = append(callresult, method.Args...)
 		// var retcallresult []reflect.Value
-		return register[method.Method].Call(callresult)
+
+		if mcall, ok := register[method.Method]; ok {
+			return mcall.Call(callresult)
+		}
+		log.Panicf("method name %s is not exists. please check it", method.Method)
 	}
 
 	// call becall default method
