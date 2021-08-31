@@ -163,3 +163,25 @@ func TestExtractNumber3(t *testing.T) {
 		t.Error(ld)
 	}
 }
+
+type LiveDataXPathError struct {
+	Follower int64 `exp:"(//span[@class='tw-user-nav-list-count']/text())[2]" method:"r:ExtractNumber"`
+}
+
+// Test XPath. the xpath is error
+func estExtractNumber4(t *testing.T) {
+	f, err := os.Open("./testfile/twistcasting.html")
+	if err != nil {
+		t.Error(err)
+	}
+
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		t.Error(err)
+	}
+
+	etor := ExtractHtml(data)
+	ld := etor.GetObjectByTag(LiveDataXPathError{}).(*LiveDataXPathError)
+
+	t.Error(ld)
+}

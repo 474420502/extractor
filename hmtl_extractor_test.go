@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 func TestRegexp(t *testing.T) {
@@ -159,10 +157,6 @@ func TestHtml(t *testing.T) {
 			}
 		}
 	}
-
-	// role
-
-	// t.Error(xp.ForEachText(".//dt"))
 }
 
 // 测试的object
@@ -254,8 +248,8 @@ func TestTag1(t *testing.T) {
 		t.Error(err)
 	} else {
 		tag3 := xp.ForEachObjectByTag(tagObject3{})
-		sr := spew.Sprint(tag3)
-		if sr != `[<*>{red } <*>{blue }]` {
+		sr := fmt.Sprintf("%q", tag3)
+		if sr != `[%!q(*extractor.tagObject3=&{red }) %!q(*extractor.tagObject3=&{blue })]` {
 			t.Error(sr)
 		}
 	}
@@ -289,7 +283,6 @@ func TestType(t *testing.T) {
 </html>`)
 
 	obj4 := etor.GetObjectByTag(tagObject4{}).(*tagObject4)
-
 	if obj4.Num == 0 {
 		t.Error("tag parse errror", obj4.Num)
 	}
