@@ -49,7 +49,8 @@ func TestTag1(t *testing.T) {
 		</body>
 	</html>`)
 
-	to := etor.GetObjectByTag(tagObject1{}).(*tagObject1)
+	to := &tagObject1{}
+	etor.GetObjectByTag(to)
 	if to.Color != "blue" {
 		t.Error(to)
 	}
@@ -112,7 +113,8 @@ func TestType(t *testing.T) {
 	</body>
 </html>`)
 
-	obj4 := etor.GetObjectByTag(tagObject4{}).(*tagObject4)
+	obj4 := &tagObject4{}
+	etor.GetObjectByTag(obj4) 
 
 	if obj4.Num == 0 {
 		t.Error("tag parse errror", obj4.Num)
@@ -181,8 +183,8 @@ func TestExtractNumber(t *testing.T) {
 		</div>
 	</body>
 </html>`)
-
-	o := etor.GetObjectByTag(enumbertag{}).(*enumbertag)
+	o := &enumbertag{}
+	etor.GetObjectByTag(o)
 	if o.Num != 20000 {
 		t.Error(o.Num)
 	}

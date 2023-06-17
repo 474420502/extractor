@@ -39,8 +39,8 @@ func TestFunc(t *testing.T) {
 		</div>
 	</body>
 </html>`)
-
-	o := etor.GetObjectByTag(otag{}).(*otag)
+	o := &otag{}
+	etor.GetObjectByTag(o)
 	if o.Num != 123123000.0 {
 		t.Error(o)
 	}
@@ -94,7 +94,8 @@ func TestExtractNumber(t *testing.T) {
 	</body>
 </html>`)
 
-	o := etor.GetObjectByTag(enumbertag{}).(*enumbertag)
+	o := &enumbertag{}
+	etor.GetObjectByTag(o)
 	if o.Num != 20000 {
 		t.Error(o.Num)
 	}
@@ -124,7 +125,8 @@ func TestExtractNumber2(t *testing.T) {
 		t.Error(err)
 	}
 	etor := ExtractHtml(data)
-	ld := etor.GetObjectByTag(LiveData{}).(*LiveData)
+	ld := &LiveData{}
+	etor.GetObjectByTag(ld)
 	if ld.Follower != 7 {
 		t.Error(ld)
 	}
@@ -158,7 +160,8 @@ func TestExtractNumber3(t *testing.T) {
 	}()
 
 	etor := ExtractHtml(data)
-	ld := etor.GetObjectByTag(LiveDataError{}).(*LiveDataError)
+	ld := &LiveDataError{}
+	etor.GetObjectByTag(ld)
 	if ld.Follower != 0 {
 		t.Error(ld)
 	}

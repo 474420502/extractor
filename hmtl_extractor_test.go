@@ -2,11 +2,16 @@ package extractor
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
 )
+
+func init() {
+	log.SetFlags(log.Llongfile)
+}
 
 func TestRegexp(t *testing.T) {
 	f, err := os.Open("./testfile/test1.html")
@@ -27,7 +32,7 @@ func TestXPathMethod(t *testing.T) {
 		t.Error(err)
 	}
 	etor := ExtractHtmlReader(f)
-	xp, err := etor.XPaths("//li")
+	xp, err := etor.XPath("//li")
 	if err != nil {
 		t.Error(err)
 	}
@@ -56,7 +61,7 @@ func TestHtml(t *testing.T) {
 		t.Error(err)
 	}
 	etor := ExtractHtmlReader(f)
-	xp, err := etor.XPaths("//*[contains(@class, 'c-header__modal__content__login')]")
+	xp, err := etor.XPath("//*[contains(@class, 'c-header__modal__content__login')]")
 	if err != nil {
 		t.Error(err)
 	}
@@ -65,7 +70,7 @@ func TestHtml(t *testing.T) {
 		t.Error("class count is error")
 	}
 
-	xp, err = etor.XPaths("//dt")
+	xp, err = etor.XPath("//dt")
 	if err != nil {
 		t.Error(err)
 	}
@@ -86,7 +91,7 @@ func TestHtml(t *testing.T) {
 		t.Error(xp.GetTexts())
 	}
 
-	xp, err = etor.XPaths("//*[contains(@class, 'l-headerMain__search__pcContent')]")
+	xp, err = etor.XPath("//*[contains(@class, 'l-headerMain__search__pcContent')]")
 	if err != nil {
 		t.Error(err)
 	}
@@ -109,7 +114,7 @@ func TestHtml(t *testing.T) {
 		}
 	}
 
-	xp, err = etor.XPaths("//li")
+	xp, err = etor.XPath("//li")
 	if err != nil {
 		t.Error(err)
 	}
@@ -179,13 +184,17 @@ func TestTag(t *testing.T) {
 	}
 
 	etor := ExtractHtmlReader(f)
-	xp, err := etor.XPaths("//body")
-	results := xp.ForEachObjectByTag(toject{})
+	xp, err := etor.XPath("//body")
+	if err != nil {
+		panic(err)
+	}
+	var results []toject
+	xp.ForEachObjectByTag(&results)
 
 	for _, r := range results {
-		if len(r.(*toject).Use) != 54 {
-			t.Error("len != 54, len is", len(r.(*toject).Use))
-			l := r.(*toject).Use
+		if len(r.Use) != 54 {
+			t.Error("len != 54, len is", len(r.Use))
+			l := r.Use
 			t.Errorf("%v", l)
 		}
 	}
@@ -225,7 +234,8 @@ func TestTag1(t *testing.T) {
 		</body>
 	</html>`)
 
-	to := etor.GetObjectByTag(tagObject1{}).(*tagObject1)
+	to := &tagObject1{}
+	etor.GetObjectByTag(to)
 	if to.Color != "blue" {
 		t.Error(to)
 	}
@@ -234,28 +244,37 @@ func TestTag1(t *testing.T) {
 		t.Error(to)
 	}
 
-	xp, err := etor.XPaths("//div/a/..")
+	xp, err := etor.XPath("//div/a/..")
 	if err != nil {
 		t.Error(err)
 	} else {
-		tobj2 := xp.ForEachObjectByTag(tagObject2{})
-		if o := tobj2[0].(*tagObject2); o.Herf != "https://www.baidu.com" || o.Color != "red" {
+		var tobj2 []tagObject2
+		xp.ForEachObjectByTag(&tobj2)
+		if o := tobj2[0]; o.Herf != "https://www.baidu.com" || o.Color != "red" {
 			t.Error(o)
 		}
 
-		if o := tobj2[1].(*tagObject2); o.Herf != "https://www.google.com" || o.Color != "blue" {
+		if o := tobj2[1]; o.Herf != "https://www.google.com" || o.Color != "blue" {
 			t.Error(o)
 		}
 
 	}
 
-	xp, err = etor.XPaths("//div/a/..")
+	xp, err = etor.XPath("//div/a/..")
 	if err != nil {
 		t.Error(err)
 	} else {
-		tag3 := xp.ForEachObjectByTag(tagObject3{})
-		sr := spew.Sprint(tag3)
+		var tag3p []*tagObject3
+		xp.ForEachObjectByTag(&tag3p)
+		sr := spew.Sprint(tag3p)
 		if sr != `[<*>{red } <*>{blue }]` {
+			t.Error(sr)
+		}
+
+		var tag3 []tagObject3
+		xp.ForEachObjectByTag(&tag3)
+		sr = spew.Sprint(tag3)
+		if sr != `[{red } {blue }]` {
 			t.Error(sr)
 		}
 	}
@@ -288,7 +307,8 @@ func TestType(t *testing.T) {
 	</body>
 </html>`)
 
-	obj4 := etor.GetObjectByTag(tagObject4{}).(*tagObject4)
+	obj4 := &tagObject4{}
+	etor.GetObjectByTag(obj4)
 
 	if obj4.Num == 0 {
 		t.Error("tag parse errror", obj4.Num)
@@ -305,4 +325,40 @@ func TestType(t *testing.T) {
 	if obj4.Num321 != 321 {
 		t.Error("tag parse errror", obj4.Num321)
 	}
+}
+
+func TestAttributes(t *testing.T) {
+
+}
+
+func TestXPath(t *testing.T) {
+	// etor := ExtractHtmlString(`<html>
+	//     <head></head>
+	//     <body>
+	//         <div class="red" num="123">
+	//             <a href="https://www.baidu.com"></a>
+	//         </div>
+	//         <div class="blue" num="321">
+	//             <a href="https://www.google.com"></a>
+	//         </div>
+	//         <div class="black" num="456">
+	//             <span>
+	//                 good你好
+	//             </span>
+	//         </div>
+	//     </body>
+	// </html>`)
+
+	// xp, err := etor.XPath("//div[1]")
+	// if err != nil {
+	// 	t.Error(err)
+	// }
+
+	// if len(xp.GetAttributes("class")) != 1 {
+	// 	t.Error("len != 1")
+	// }
+
+	// if xp.GetAttributes("class")[0].GetValue() != "red" {
+	// 	t.Error("value != red")
+	// }
 }

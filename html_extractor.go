@@ -60,22 +60,24 @@ func (etor *HmtlExtractor) RegexpString(exp string) [][]string {
 
 // GetObjectByTag single xpath extractor
 func (etor *HmtlExtractor) GetObjectByTag(obj interface{}) interface{} {
-	if nobj, ok := getInfoByTag(etor.doc, getFieldTags(obj)); ok {
-		return nobj.Addr().Interface()
+	v := reflect.ValueOf(obj)
+	vtype := v.Type()
+	if v.Kind() != reflect.Ptr {
+		log.Panic("obj must ptr")
 	}
+	vtype = vtype.Elem()
+
+	// if ok := getInfoByTag(etor.doc, getFieldTags(obj), v); ok {
+	// 	return nobj.Addr().Interface()
+	// }
+	getInfoByTag(etor.doc, getFieldTags(vtype), v.Elem())
 	return nil
 }
 
 // XPaths multi xpath extractor
-func (etor *HmtlExtractor) XPaths(exp string) (*XPath, error) {
+func (etor *HmtlExtractor) XPath(exp string) (*XPath, error) {
 	result, err := etor.doc.QueryAll(exp)
 	return newXPath(result...), err
-}
-
-// XPath libxml2 xpathresult
-func (etor *HmtlExtractor) XPath(exp string) (result *htmlquery.Node, err error) {
-	n, err := etor.doc.Query(exp)
-	return (*htmlquery.Node)(n), err
 }
 
 // ErrorFlags  忽略错误标志位, 暂时不用
@@ -243,8 +245,8 @@ func init() {
 }
 
 // 获取成员变量的tag信息.
-func getFieldTags(obj interface{}) []*fieldtag {
-	otype := reflect.TypeOf(obj)
+func getFieldTags(otype reflect.Type) []*fieldtag {
+
 	var fieldtags []*fieldtag
 	for i := 0; i < otype.NumField(); i++ {
 
@@ -597,7 +599,7 @@ func autoStrToValueByType(ft *fieldtag, fvalue reflect.Value) reflect.Value {
 	return fvalue
 }
 
-func callMehtod(becall reflect.Value, method *methodtag) []reflect.Value {
+func callMethod(becall reflect.Value, method *methodtag) []reflect.Value {
 	var callresult []reflect.Value
 	if method.IsRegister { // call register function
 		if becall.Kind() != reflect.String {
@@ -622,7 +624,7 @@ func callMehtod(becall reflect.Value, method *methodtag) []reflect.Value {
 			}
 		}
 
-		panic(fmt.Errorf("Method name %s is not exists. please check it.\nMethod may be %s. the sim is %f", method.Method, curmehtod, maxpercent))
+		panic(fmt.Sprintf("Method name %s is not exists. please check it.\nMethod may be %s. the sim is %f", method.Method, curmehtod, maxpercent))
 	}
 
 	// call becall default method
@@ -636,7 +638,7 @@ func callMehtod(becall reflect.Value, method *methodtag) []reflect.Value {
 	return nil
 }
 
-func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflect.Value, isCreateObj bool) {
+func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag, obj reflect.Value) {
 	var ft *fieldtag
 	defer func() {
 		if err := recover(); err != nil {
@@ -655,7 +657,7 @@ func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflec
 					var callresult []reflect.Value
 					for _, method := range ft.Methods {
 						if !becall.IsNil() {
-							callresult = callMehtod(becall, &method)
+							callresult = callMethod(becall, &method)
 							becall = callresult[0]
 						} else {
 							isVaild = false
@@ -665,19 +667,15 @@ func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflec
 
 					if isVaild {
 						callresults = append(callresults, callresult)
-						if !isCreateObj {
-							isCreateObj = true
-							createobj = reflect.New(ft.Type).Elem()
-						}
 					}
 				}
 
-				if isCreateObj {
-					fvalue := createobj.Field(ft.Index)
+				if len(callresults) > 0 {
+					fvalue := obj.Field(ft.Index)
 					for _, callresult := range callresults {
 						fvalue = reflect.Append(fvalue, autoStrToValueByType(ft, callresult[0]))
 					}
-					createobj.Field(ft.Index).Set(fvalue)
+					obj.Field(ft.Index).Set(fvalue)
 				}
 
 			} else {
@@ -695,7 +693,7 @@ func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflec
 					var callresult []reflect.Value
 					for _, method := range ft.Methods {
 						if !becall.IsNil() {
-							callresult = callMehtod(becall, &method)
+							callresult = callMethod(becall, &method)
 							becall = callresult[0]
 						} else {
 							isVaild = false
@@ -703,34 +701,43 @@ func getInfoByTag(node *htmlquery.Node, fieldtags []*fieldtag) (createobj reflec
 						}
 
 						if isVaild {
-							if !isCreateObj {
-								isCreateObj = true
-								createobj = reflect.New(ft.Type).Elem()
-							}
 							fvalue := callresult[0]
-							createobj.Field(ft.Index).Set(autoStrToValueByType(ft, fvalue))
+							obj.Field(ft.Index).Set(autoStrToValueByType(ft, fvalue))
 						}
 					}
 				}
 			}
 		}
 	}
-
-	return
 }
 
 // ForEachObjectByTag after every result executing xpath, get the String of all result
-func (xp *XPath) ForEachObjectByTag(obj interface{}) []interface{} {
-	var results []interface{}
-	fieldtags := getFieldTags(obj)
+func (xp *XPath) ForEachObjectByTag(obj interface{}) {
+	// oslice := reflect.ValueOf(obj)
+	ov := reflect.ValueOf(obj)
+	oslice := ov.Elem()
+	otype := oslice.Type().Elem()
+	// log.Println(oslice, otype)
+	var fieldtags []*fieldtag
+	var isTypePtr bool = false
+	if otype.Kind() == reflect.Ptr {
+		otype = otype.Elem()
+		isTypePtr = true
+	}
+
+	fieldtags = getFieldTags(otype)
 	for _, xpresult := range xp.results {
-		if nobj, isCreateObj := getInfoByTag(xpresult, fieldtags); isCreateObj {
-			results = append(results, nobj.Addr().Interface())
+		o := reflect.New(otype).Elem()
+		getInfoByTag(xpresult, fieldtags, o)
+		if isTypePtr {
+			oslice = reflect.Append(oslice, o.Addr())
+		} else {
+			oslice = reflect.Append(oslice, o)
 		}
 
 	}
 
-	return results
+	ov.Elem().Set(oslice)
 }
 
 // ForEachTagName after every result executing xpath, get the String of all result
@@ -808,9 +815,7 @@ func (xp *XPath) ForEachAttrKeys(exp string) (keyslist []string, errorlist []err
 	})
 
 	for _, i := range inames {
-		for _, s := range i.([]string) {
-			keyslist = append(keyslist, s)
-		}
+		keyslist = append(keyslist, i.([]string)...)
 	}
 
 	return keyslist, errlist
