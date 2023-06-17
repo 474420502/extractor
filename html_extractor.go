@@ -10,7 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/474420502/htmlquery"
+	"github.com/474420502/extractor/htmlquery"
+
 	"github.com/pkg/errors"
 )
 

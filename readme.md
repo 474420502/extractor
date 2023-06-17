@@ -151,7 +151,7 @@ func TestHtml(t *testing.T) {
     xp.GetAttributes("class") // get all xpath result Attribute class
     xp.ForEachText(".//dt") // all xpath result execute XPath(.//dt) Get all Text
 
-    etor.XPath("{xpath}") // one result like html.Node. i change some api. https://github.com/474420502/htmlquery/blob/feature/esonapi/xnode.go  forked from antchfx/htmlquery
+    etor.XPath("{xpath}") // one result like html.Node. i change some api. https://github.com/antchfx/htmlquery/blob/feature/esonapi/xnode.go  forked from antchfx/htmlquery
 }
 ```
 

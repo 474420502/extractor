@@ -1,15 +1,18 @@
 module github.com/474420502/extractor
 
-go 1.15
+go 1.20
 
 require (
-	github.com/474420502/htmlquery v1.2.4-0.20200812072201-e871dd09247a
-	github.com/474420502/requests v1.7.0
+	github.com/antchfx/xpath v1.2.4
 	github.com/davecgh/go-spew v1.1.1
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.6.1 // indirect
-	github.com/tidwall/gjson v1.6.0
-	gopkg.in/xmlpath.v1 v1.0.0-20140413065638-a146725ea6e7 // indirect
-	launchpad.net/gocheck v0.0.0-20140225173054-000000000087 // indirect
-	launchpad.net/xmlpath v0.0.0-20130614043138-000000000004 // indirect
+	github.com/tidwall/gjson v1.12.0
+	golang.org/x/net v0.5.0
+)
+
+require (
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
 )
