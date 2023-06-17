@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -327,38 +328,91 @@ func TestType(t *testing.T) {
 	}
 }
 
-func TestAttributes(t *testing.T) {
+type TestStruct struct {
+	TestAttr string `exp:"//div[@class='test']"`
+}
 
+func TestGetObjectByTag(t *testing.T) {
+	html := `<div class="test">value</div>`
+	e := ExtractHtmlString(html)
+	v := TestStruct{}
+	e.GetObjectByTag(&v)
+	if v.TestAttr != "value" {
+		t.Error("value !=", v.TestAttr)
+	}
+}
+
+func TestXPath_GetTexts(t *testing.T) {
+	html := `<div>text1</div><div>text2</div>`
+	e := ExtractHtmlString(html)
+	xp, _ := e.XPath("//div")
+	texts := xp.GetTexts()
+	if texts[0] != "text1" || texts[1] != "text2" {
+		t.Error("texts != []string{\"text1\", \"text2\"}")
+	}
+}
+
+func TestXPath_GetAttributes(t *testing.T) {
+	html := `<div id="test1" class="demo"><div id="test2">`
+	e := ExtractHtmlString(html)
+	xp, _ := e.XPath("//div")
+	attrs := xp.GetAttributes("id")
+	if attrs[0].Val != "test1" || attrs[1].Val != "test2" {
+		t.Error("attrs != []string{\"test1\", \"test2\"}")
+	}
+}
+
+func TestOutputXML(t *testing.T) {
+	html := `<html><head></head><body><div><span>text</span></div></body></html>`
+	e := ExtractHtmlString(html)
+
+	if e.doc.OutputHTML(true) != html {
+		t.Error(e.doc.OutputHTML(true))
+	}
 }
 
 func TestXPath(t *testing.T) {
-	// etor := ExtractHtmlString(`<html>
-	//     <head></head>
-	//     <body>
-	//         <div class="red" num="123">
-	//             <a href="https://www.baidu.com"></a>
-	//         </div>
-	//         <div class="blue" num="321">
-	//             <a href="https://www.google.com"></a>
-	//         </div>
-	//         <div class="black" num="456">
-	//             <span>
-	//                 good你好
-	//             </span>
-	//         </div>
-	//     </body>
-	// </html>`)
+	html := `<html><body><div class="test">text</div></body></html>`
+	e := ExtractHtmlString(html)
+	xp, _ := e.XPath("//div[@class='test']")
 
-	// xp, err := etor.XPath("//div[1]")
-	// if err != nil {
-	// 	t.Error(err)
-	// }
+	if xp.GetTagNames()[0] != "div" {
+		t.Error("xp.NodeName != div")
+	}
+	if xp.GetTexts()[0] != "text" {
+		t.Error("xp.Text() != text")
+	}
+}
 
-	// if len(xp.GetAttributes("class")) != 1 {
-	// 	t.Error("len != 1")
-	// }
+func TestRegexpString(t *testing.T) {
+	html := `<h1>Title</h1>`
+	e := ExtractHtmlString(html)
+	title := e.RegexpString("<h1>(.*)</h1>")
+	if title[0][1] != "Title" {
+		t.Error("title != Title")
+	}
+}
 
-	// if xp.GetAttributes("class")[0].GetValue() != "red" {
-	// 	t.Error("value != red")
-	// }
+func TestAutoValueType(t *testing.T) {
+	testCases := []struct {
+		vtype string
+		v     interface{}
+		want  interface{}
+	}{
+		{"int", 10, int(10)},
+		{"int32", int32(10), int32(10)},
+		{"int64", int64(10), int64(10)},
+		{"uint", uint(10), uint(10)},
+		{"uint32", uint32(10), uint32(10)},
+		{"uint64", uint64(10), uint64(10)},
+		{"float32", float32(3.14), float32(3.14)},
+		{"float64", float64(3.14), float64(3.14)},
+	}
+
+	for _, tc := range testCases {
+		got := autoValueType(tc.vtype, tc.v)
+		if !reflect.DeepEqual(got.Interface(), tc.want) {
+			t.Errorf("want %v, got %v", tc.want, got.Interface())
+		}
+	}
 }
