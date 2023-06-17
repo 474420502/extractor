@@ -59,19 +59,14 @@ func (etor *HmtlExtractor) RegexpString(exp string) [][]string {
 }
 
 // GetObjectByTag single xpath extractor
-func (etor *HmtlExtractor) GetObjectByTag(obj interface{}) interface{} {
+func (etor *HmtlExtractor) GetObjectByTag(obj interface{}) {
 	v := reflect.ValueOf(obj)
 	vtype := v.Type()
 	if v.Kind() != reflect.Ptr {
 		log.Panic("obj must ptr")
 	}
 	vtype = vtype.Elem()
-
-	// if ok := getInfoByTag(etor.doc, getFieldTags(obj), v); ok {
-	// 	return nobj.Addr().Interface()
-	// }
 	getInfoByTag(etor.doc, getFieldTags(vtype), v.Elem())
-	return nil
 }
 
 // XPaths multi xpath extractor
